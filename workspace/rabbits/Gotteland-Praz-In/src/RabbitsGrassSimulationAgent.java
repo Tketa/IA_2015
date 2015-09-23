@@ -50,15 +50,15 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	public void step(){
 		int newX = x + vX;
 	    int newY = y + vY;
-	    System.out.println(rSpace);
 	    Object2DGrid grid = rSpace.getCurrentAgentSpace();
 	    newX = (newX + grid.getSizeX()) % grid.getSizeX();
 	    newY = (newY + grid.getSizeY()) % grid.getSizeY();
-
-	    tryMove(newX, newY); // Qu'est-ce qu'on fait quand on peut pas bouger? On retente ailleurs ou alors on attend le prochain step?
-	    setVxVy();
-	    energy = energy - moveEnergy + rSpace.eatGrassAt(x, y);
 	    
+	    if(tryMove(newX, newY)){
+	    	energy = energy - moveEnergy;
+	    }
+	    energy += rSpace.eatGrassAt(x, y);
+	    setVxVy();	
 	}
 	
 	private boolean tryMove(int newX, int newY){

@@ -77,13 +77,16 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	public void buildModel(){
 		System.out.println("Running BuildModel");
+		if(gridSizeX == 0 || gridSizeY == 0){
+			System.err.println("Gridsize can't be 0 -- Exiting programm");
+			System.exit(-1);
+		}
 		rSpace = new RabbitsGrassSimulationSpace(gridSizeX, gridSizeY);
 		rSpace.spreadGrass(grassRate);
 		
 		for(int i = 0; i < numRabbits; i++){
 			addNewAgent();
 		}
-		// J'ai pas fait le step 19 du tuto (pas essentiel)
 	}
 
 	public void buildSchedule(){

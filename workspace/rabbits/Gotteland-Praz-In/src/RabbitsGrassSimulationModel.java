@@ -1,15 +1,18 @@
-import uchicago.src.sim.engine.Schedule;
-import uchicago.src.sim.engine.SimModelImpl;
-import uchicago.src.sim.engine.SimInit;
-import uchicago.src.sim.gui.DisplaySurface;
-import uchicago.src.sim.gui.ColorMap;
-import uchicago.src.sim.gui.Value2DDisplay;
-import uchicago.src.sim.gui.Object2DDisplay;
-import uchicago.src.sim.engine.BasicAction;
-import uchicago.src.sim.util.SimUtilities;
-
 import java.awt.Color;
 import java.util.ArrayList;
+
+import uchicago.src.sim.analysis.DataSource;
+import uchicago.src.sim.analysis.OpenSequenceGraph;
+import uchicago.src.sim.analysis.Sequence;
+import uchicago.src.sim.engine.BasicAction;
+import uchicago.src.sim.engine.Schedule;
+import uchicago.src.sim.engine.SimInit;
+import uchicago.src.sim.engine.SimModelImpl;
+import uchicago.src.sim.gui.ColorMap;
+import uchicago.src.sim.gui.DisplaySurface;
+import uchicago.src.sim.gui.Object2DDisplay;
+import uchicago.src.sim.gui.Value2DDisplay;
+import uchicago.src.sim.util.SimUtilities;
 
 /**
  * Class that implements the simulation model for the rabbits grass
@@ -43,6 +46,35 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private RabbitsGrassSimulationSpace rSpace;
 	private DisplaySurface displaySurf;
 	private ArrayList<RabbitsGrassSimulationAgent> agentList;
+	
+	private OpenSequenceGraph populationGraph;
+	private OpenSequenceGraph grassGraph;
+	
+	class PopulationInSpace implements DataSource, Sequence {
+
+		@Override
+		public double getSValue() {
+			return rSpace.getNbAgents();
+		}
+
+		@Override
+		public Object execute() {
+			return new Double(getSValue());
+		}
+	}
+	
+	class GrassInSpace implements DataSource, Sequence {
+		
+		@Override
+		public double getSValue() {
+			return rSpace.getGrassQuantity();
+		}
+
+		@Override
+		public Object execute() {
+			return new Double(getSValue());
+		}
+	}
 
 
 	public static void main(String[] args) {
@@ -62,9 +94,25 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			displaySurf.dispose();
 		}
 		displaySurf = null;
+		
+	    if (populationGraph != null){
+	    	populationGraph.dispose();
+	      }
+	    populationGraph = null;
+	    
+	    if(grassGraph != null) {
+	    	grassGraph.dispose();
+	    }
+	    grassGraph = null;
+	    
+	    
 		displaySurf = new DisplaySurface(this, "Rabbit Model Window 1");
+		populationGraph = new OpenSequenceGraph("Amount of agents in space", this);
+		grassGraph = new OpenSequenceGraph("Amount of Grass in space", this);
 		
 		registerDisplaySurface("Rabbit Model Window 1", displaySurf);
+		this.registerMediaProducer("Population Plot", populationGraph);
+		this.registerMediaProducer("Grass Plot", grassGraph);
 	}
 	
 	public void begin() {
@@ -73,6 +121,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	    buildDisplay();
 	    
 	    displaySurf.display();
+	    populationGraph.display();
+	    grassGraph.display();
 	}
 
 	public void buildModel(){
@@ -112,6 +162,22 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		    }
 		}
 	    schedule.scheduleActionBeginning(0, new RabbitGrassSimulationStep());
+
+	      class UpdatePopulationInSpace extends BasicAction {
+	        public void execute(){
+	          populationGraph.step();
+	        }
+	      }
+
+	      schedule.scheduleActionAtInterval(10, new UpdatePopulationInSpace());
+	      
+	      class UpdateGrassInSpace extends BasicAction {
+		        public void execute(){
+		          grassGraph.step();
+		        }
+		      }
+
+		      schedule.scheduleActionAtInterval(10, new UpdateGrassInSpace());
 	}
 	
 	public void buildDisplay(){
@@ -128,6 +194,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	    
 	    displaySurf.addDisplayableProbeable(displayGrass, "Grass");
 	    displaySurf.addDisplayableProbeable(displayAgents, "Agents");
+	    
+	    populationGraph.addSequence("Population In Space", new PopulationInSpace());
+	    //grassGraph.addSequence("Grass in Space", new GrassInSpace());
+	    populationGraph.addSequence("Grass in Space", new GrassInSpace());
 	}
 	
 	private boolean addNewAgent(){

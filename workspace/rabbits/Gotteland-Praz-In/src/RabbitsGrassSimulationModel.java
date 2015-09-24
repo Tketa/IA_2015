@@ -1,6 +1,8 @@
 import java.awt.Color;
 import java.util.ArrayList;
 
+import com.sun.org.apache.xml.internal.security.Init;
+
 import uchicago.src.sim.analysis.DataSource;
 import uchicago.src.sim.analysis.OpenSequenceGraph;
 import uchicago.src.sim.analysis.Sequence;
@@ -47,8 +49,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private DisplaySurface displaySurf;
 	private ArrayList<RabbitsGrassSimulationAgent> agentList;
 	
-	private OpenSequenceGraph populationGraph;
-	private OpenSequenceGraph grassGraph;
+	private OpenSequenceGraph graph;
 	
 	class PopulationInSpace implements DataSource, Sequence {
 
@@ -76,7 +77,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 
-
 	public static void main(String[] args) {
 		
 		SimInit init = new SimInit();
@@ -94,41 +94,42 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 		displaySurf = null;
 		
-	    if (populationGraph != null){
-	    	populationGraph.dispose();
+	    if (graph != null){
+	    	graph.dispose();
 	      }
-	    populationGraph = null;
-	    
-	    if(grassGraph != null) {
-	    	grassGraph.dispose();
-	    }
-	    grassGraph = null;
+	    graph = null;
 	    
 	    
 		displaySurf = new DisplaySurface(this, "Rabbit Model Window 1");
-		populationGraph = new OpenSequenceGraph("Amount of agents in space", this);
-		grassGraph = new OpenSequenceGraph("Amount of Grass in space", this);
+		graph = new OpenSequenceGraph("Population and grass plot", this);
 		
 		registerDisplaySurface("Rabbit Model Window 1", displaySurf);
-		this.registerMediaProducer("Population Plot", populationGraph);
-		this.registerMediaProducer("Grass Plot", grassGraph);
+		this.registerMediaProducer("Population and grass plot", graph);
 	}
 	
 	public void begin() {
-	    buildModel();
-	    buildSchedule();
-	    buildDisplay();
+	    boolean isModelValid = buildModel();
 	    
-	    displaySurf.display();
-	    populationGraph.display();
-	    grassGraph.display();
+	    if(isModelValid){
+	    	buildSchedule();
+	    	buildDisplay();
+	    	displaySurf.display();
+	    	graph.display();
+	    }
+	    else{
+	    	this.stop();
+	    }
 	}
 
-	public void buildModel(){
+	public boolean buildModel(){
 		System.out.println("Running BuildModel");
 		if(gridSizeX == 0 || gridSizeY == 0){
-			System.err.println("Gridsize can't be 0 -- Exiting programm");
-			System.exit(-1);
+			System.err.println("[Error]: Gridsize can't be 0 -- Re-setup the programm");
+			return false;
+		}
+		if(gridSizeX * gridSizeY > 250000){
+			System.err.println("[Error]: The total number of cells can't exceed 250'000 -- Re-setup the programm");
+			return false;
 		}
 		rSpace = new RabbitsGrassSimulationSpace(gridSizeX, gridSizeY);
 		rSpace.spreadGrass(grassRate);
@@ -136,6 +137,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		for(int i = 0; i < numRabbits; i++){
 			addNewAgent();
 		}
+		return true;
 	}
 
 	public void buildSchedule(){
@@ -164,19 +166,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	      class UpdatePopulationInSpace extends BasicAction {
 	        public void execute(){
-	          populationGraph.step();
+	          graph.step();
 	        }
 	      }
 
 	      schedule.scheduleActionAtInterval(10, new UpdatePopulationInSpace());
-	      
-	      class UpdateGrassInSpace extends BasicAction {
-		        public void execute(){
-		          grassGraph.step();
-		        }
-		      }
-
-		      schedule.scheduleActionAtInterval(10, new UpdateGrassInSpace());
 	}
 	
 	public void buildDisplay(){
@@ -194,9 +188,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	    displaySurf.addDisplayableProbeable(displayGrass, "Grass");
 	    displaySurf.addDisplayableProbeable(displayAgents, "Agents");
 	    
-	    populationGraph.addSequence("Population In Space", new PopulationInSpace());
-	    //grassGraph.addSequence("Grass in Space", new GrassInSpace());
-	    populationGraph.addSequence("Grass in Space", new GrassInSpace());
+	    graph.addSequence("Population In Space", new PopulationInSpace());
+	    graph.addSequence("Grass in Space", new GrassInSpace());
 	}
 	
 	private boolean addNewAgent(){

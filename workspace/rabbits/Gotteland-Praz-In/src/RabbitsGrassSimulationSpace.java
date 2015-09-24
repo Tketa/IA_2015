@@ -58,7 +58,7 @@ public class RabbitsGrassSimulationSpace {
 		int count = 0;
 		int maxGuess = 10* agentSpace.getSizeX() * agentSpace.getSizeY(); // Je sais pas si c'est vraiment bien ca!
 		
-		while((occupied==false) && (count < maxGuess)){
+		while((nbAgents < maxGuess/10) && (occupied==false) && (count < maxGuess) ){
 			int x = (int)(Math.random()*(agentSpace.getSizeX()));
 			int y = (int)(Math.random()*(agentSpace.getSizeY()));
 			if(isCellOccupied(x,y) == false){

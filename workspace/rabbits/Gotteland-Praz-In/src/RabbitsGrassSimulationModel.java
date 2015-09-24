@@ -1,8 +1,6 @@
 import java.awt.Color;
 import java.util.ArrayList;
 
-import com.sun.org.apache.xml.internal.security.Init;
-
 import uchicago.src.sim.analysis.DataSource;
 import uchicago.src.sim.analysis.OpenSequenceGraph;
 import uchicago.src.sim.analysis.Sequence;

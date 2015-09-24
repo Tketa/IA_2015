@@ -85,7 +85,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 	
 	public void setup() {
-		System.out.println("Running Setup");
 		rSpace = null;
 		agentList = new ArrayList<RabbitsGrassSimulationAgent>();
 		schedule = new Schedule(1);

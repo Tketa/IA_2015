@@ -129,6 +129,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			System.err.println("[Error]: The total number of cells can't exceed 250'000 -- Re-setup the programm");
 			return false;
 		}
+		if(grassRate < 0) grassRate = 0;
 		rSpace = new RabbitsGrassSimulationSpace(gridSizeX, gridSizeY);
 		rSpace.spreadGrass(grassRate);
 		

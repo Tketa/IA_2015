@@ -3,6 +3,8 @@ import uchicago.src.sim.gui.SimGraphics;
 import uchicago.src.sim.space.Object2DGrid;
 
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.Toolkit;
 
 
 /**
@@ -20,6 +22,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private int energy;
 	private int moveEnergy;
 	private RabbitsGrassSimulationSpace rSpace;
+	private Image rabbit = Toolkit.getDefaultToolkit().createImage("rabbit.png");
 	
 	
 	public RabbitsGrassSimulationAgent(int energy, int moveEnergy) {
@@ -44,7 +47,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 
 	public void draw(SimGraphics G) {
-		G.drawFastOval(Color.white);
+		G.drawImageToFit(rabbit);
 	}
 	
 	public void step(){

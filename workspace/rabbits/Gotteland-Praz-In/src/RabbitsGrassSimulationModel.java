@@ -32,7 +32,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final int BIRTHTHRESHOLD = 15;
 	private static final int GRASSRATE = 30;
 	private static final int INITIALENERGY = 10;
-	private static final int MOVEENERGY = 1;
+	private static final int MOVECOST = 1;
 	
 	private int numRabbits = NUMRABBITS;
 	private int gridSizeX = GRIDSIZEX;
@@ -40,7 +40,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private int birthThreshold = BIRTHTHRESHOLD;
 	private int grassRate = GRASSRATE;
 	private int initialEnergy = INITIALENERGY;
-	private int moveEnergy = MOVEENERGY;
+	private int moveCost = MOVECOST;
 			
 	private Schedule schedule;	
 	private RabbitsGrassSimulationSpace rSpace;
@@ -192,7 +192,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 	
 	private boolean addNewAgent(){
-	    RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(initialEnergy, moveEnergy);
+	    RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(initialEnergy, moveCost);
 	    boolean canAdd = rSpace.addAgent(a);
 	    if(canAdd) {
 	    	agentList.add(a);
@@ -214,7 +214,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     }
 	
 	public String[] getInitParam(){
-		String[] initParams = {"NumRabbits", "gridSizeX", "gridSizeY", "birthThreshold", "grassRate", "initialEnergy", "moveEnergy"};
+		String[] initParams = {"NumRabbits", "gridSizeX", "gridSizeY", "birthThreshold", "grassRate", "initialEnergy", "moveCost"};
 	    return initParams;
 	}
 	
@@ -273,12 +273,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		this.initialEnergy = initialEnergy;
 	}
 
-	public int getMoveEnergy() {
-		return moveEnergy;
+	public int getMoveCost() {
+		return moveCost;
 	}
 
-	public void setMoveEnergy(int moveEnergy) {
-		this.moveEnergy = moveEnergy;
+	public void setMoveCost(int moveCost) {
+		this.moveCost = moveCost;
 	}
 	
 }

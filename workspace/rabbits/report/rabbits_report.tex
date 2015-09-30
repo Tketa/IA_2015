@@ -1,24 +1,19 @@
 
-\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\documentclass[fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
 
 \usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
 %\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[bottom=6em]{geometry}
 \usepackage[english]{babel} % English language/hyphenation
 \usepackage[babel=true]{csquotes} 
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{graphicx}
+\usepackage{titlepic}
 \usepackage{color}
 \usepackage{sectsty} % Allows customizing section commands
 \usepackage{listings} %Allows Java code
-\usepackage{fancyhdr} % Custom headers and footers
-\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
-\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
-\fancyfoot[L]{} % Empty left footer
-\fancyfoot[C]{} % Empty center footer
-\fancyfoot[R]{\thepage} % Page numbering for right footer
-\renewcommand{\headrulewidth}{0pt} % Remove header underlines
-\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
-\setlength{\headheight}{13.6pt} % Customize the height of the header
+\setlength{\headheight}{0pt} % Customize the height of the header
 
 %\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
 %\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
@@ -48,14 +43,89 @@
 %----------------------------------------------------------------------------------------
 
 \section*{Code description}
-In this exercise, we use the 3 provided classes:
+In this exercise, we use the 3 provided classes: \textit{RabbitsGrassSimulationModel}, \textit{RabbitsGrassSimulationSpace} and  \textit{RabbitsGrassSimulationAgent}
+
+The first class is used to initialize and build the simulation. It received the parameters and create the agents and the space. It is also responsible of displaying the different part that are used by the user. The second class is used to create the space. In our case, the space is made of two grids: the rabbit grid and the grass grid. \textbf{Both grids are the same size} \\ \\
+The rabbit grid is used to track the rabbits' move and also avoid collision. \\
+The grass grid is used to track the amount of grass in each cell at every tick. 
+
+\section*{Requirements}
+Our simulation is running by the following requirements: \\
+
+
+- Grid: the size of the world is \textbf{changeable}, and is a torus.
+
+- Collisions: there can only be one rabbit in a cell at a given time
+
+- Legal moves: rabbits can only move up, down, left or right. No diagonals.
+
+- Eat condition: a rabbit can eat grass when it occupies the same cell.
+
+- Communication : we assume that agents can not communicate with one another.
+
+- Visible range and directions : all rabbits are blind and move randomly.
+
+- Creation: at their births, rabbits are created at random places.
+
+\section*{Studied variables}
+
+In this project, we implement sliders for the following variables in order to study their impact on rabbit and grass population:
+
+\begin{itemize}
+
+\item The \textbf{size} of the grid. On the X and Y axises.
+
+\item The \textbf{initial number of rabbits} on the map
+
+\item The \textbf{birth threshold} of rabbits which defines the energy level at which the rabbit reproduces.
+
+\item The \textbf{grass growth rate} which controls the rate at which grass grows (total amount of grass added to the whole world within one simulation tick). \\
+
+And also for two other variables that were not specified in the assignement:
+
+\item The \textbf{initial energy} of a rabbit when it appears in the world.
+
+\item The \textbf{move cost} defines how much energy it costs a rabbit to move.
+
+\end{itemize}
+
+
+\subsection*{Forbidden values}
+
+We implemented our simulation to refuse certain values in the slider, values that would not make sense or make the simulation ill-defined:
+
+\begin{itemize}
+
+\item The maximum size of the grid is 250'000 cells and the minimum is 1. This means any combination of X and Y such that 0 < X*Y <= 250000.
+
+\item The grass growth rate needs to be positive or zero, otherwise it does not make any sense. When a negative value is inserted, our program sets it to '0' instead.
+
+\end{itemize}
+
+\subsection*{Controversial choices of implementation}
+
+Because the description of certain situations was unclear, we decided to make a personal implementation choice for the following cases:
+
+\begin{itemize}
+
+\item When a rabbit wants to move but another rabbit is already there, it aborts the move. Then does not spend any energy.
+
+\item When a rabbit wants to reproduce but the grid is already full with rabbits, it aborts reproduction, then does not spend any energy.
+\end{itemize}
+
+\section*{Observations}
+
+We played a bit with the sliders and noticed 3 different scenarios depending on the values we input:
+
 \begin{enumerate}
-\item RabbitsGrassSimulationModel
-\item RabbitsGrassSimulationSpace
-\item RabbitsGrassSimulationAgent
+
+\item \textbf{Rabbitmageddon}: When the rabbits do not have enough ressources to reproduce (grass amount is too low, move cost is too high or birth threshold is too high as well), eventually they start dying. They do not reproduce quickly enough and then die. Then the grass amount is just rising to infinity.
+
+\item \textbf{Harmony with Nature}: When the rabbits have enough grass to reproduce, but also die quickly enough for the overall amount of rabbit to be quite stable (oscillates up and down around a mean). \\ \\
+To put in in real life terms: rabbits eats all the grass that is available to them, then reproduce if there is enough of it. That causes the population to increase, reducing the amount of 'grass per rabbit'. Those do not have enough grass, so they end up dying, leaving more grass to the survivors that reproduce again, and so on.
+
+\item \textbf{Rabbits are coming} There is enough grass so that the 'grass per rabbit' ratio is enough to reproduce, even when the grid is full of rabbits. \\ And eventually when the grid is full, rabbits do not move anymore and cannot reproduce, which causes them not to spend any energy. However, they keep on eating the grass on their cell. Then they must become very fat.
+
 \end{enumerate}
-The first class is used to initialize and build the simulation. It received the parameters and create the agents and the space. It is also responsible of displaying the different part that are used by the user. The second class is used to create the space. In our case, the space is made of two grids: the rabbit grid and the grass grid. The rabbit grid is used to track the rabbits' move and also avoid collision. 
-
-
 
 \end{document}          

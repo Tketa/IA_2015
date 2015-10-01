@@ -159,6 +159,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			reapDeadAgents();
 			rSpace.spreadGrass(grassRate);
 			displaySurf.updateDisplay();
+			System.out.println("Nombre de lapins "+numRabbits);
 		    }
 		}
 	    schedule.scheduleActionBeginning(0, new RabbitGrassSimulationStep());

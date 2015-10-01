@@ -1,5 +1,6 @@
 package template;
 
+
 import java.util.Random;
 
 import logist.agent.Agent;
@@ -12,6 +13,7 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+
 
 public class ReactiveTemplate implements ReactiveBehavior {
 
@@ -28,6 +30,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		this.random = new Random();
 		this.pPickup = discount;
+		
+		// This agent is a vehicle so it has only one in its list.
+		Vehicle vehicle = agent.vehicles().get(0);
+		
+		offlineProcessing(topology, td, vehicle, discount);
 	}
 
 	@Override
@@ -42,4 +49,20 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		return action;
 	}
+	
+	/** This methods handles all preprocessing
+	 * 
+	 * @param t
+	 * @param td
+	 * @param v
+	 * @param discount
+	 */
+	public void offlineProcessing(Topology t, TaskDistribution td, Vehicle v, double discount) {
+		
+		
+		
+	}
+	
+	
+	
 }

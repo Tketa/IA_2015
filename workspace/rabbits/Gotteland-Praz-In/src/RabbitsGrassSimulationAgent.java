@@ -47,7 +47,8 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 
 	public void draw(SimGraphics G) {
-		G.drawImageToFit(rabbit);
+		//G.drawImageToFit(rabbit);
+		G.drawCircle(Color.white);
 	}
 	
 	public void step(){

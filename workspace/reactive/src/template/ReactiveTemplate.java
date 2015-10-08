@@ -2,6 +2,7 @@ package template;
 
 
 import java.util.Random;
+import java.util.Set;
 
 import logist.agent.Agent;
 import logist.behavior.ReactiveBehavior;
@@ -13,6 +14,8 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+import model.ReinforcementLearningModel;
+import model.State;
 
 
 public class ReactiveTemplate implements ReactiveBehavior {
@@ -34,7 +37,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		// This agent is a vehicle so it has only one in its list.
 		Vehicle vehicle = agent.vehicles().get(0);
 		
-		offlineProcessing(topology, td, vehicle, discount);
+		ReinforcementLearningModel.offlineProcessing(topology, td, vehicle, discount);
 	}
 
 	@Override
@@ -49,20 +52,6 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		return action;
 	}
-	
-	/** This methods handles all preprocessing
-	 * 
-	 * @param t
-	 * @param td
-	 * @param v
-	 * @param discount
-	 */
-	public void offlineProcessing(Topology t, TaskDistribution td, Vehicle v, double discount) {
-		
-		
-		
-	}
-	
 	
 	
 }

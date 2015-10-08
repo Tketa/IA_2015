@@ -1,27 +1,45 @@
 package model;
 
+import java.util.HashSet;
 import java.util.Set;
 
-import logist.plan.Action;
 import logist.topology.Topology.City;
 
 public class State {
 
+	private int stateId;
 	
 	private City currentCity;
 	private City deliveryCity; // Or null if no delivery city
 	
-	private Set<Action> possibleActions;
+	private Set<City> possibleMoves;
 	
-	public State(City homeCity, Set<Action> possibleActions) {
+	public State(int stateId, City homeCity, City deliveryCity) {
 		
+		this.stateId = stateId;
 		this.currentCity = homeCity;
+		this.deliveryCity = deliveryCity;
 		
-		// Initially no package to deliver
-		this.deliveryCity = null;
-		
-		this.possibleActions = possibleActions;
+		this.possibleMoves = new HashSet<City>();
 	}
+
+	/**
+	 * @return the stateId
+	 */
+	public int getStateId() {
+		return stateId;
+	}
+
+
+
+	/**
+	 * @param stateId the stateId to set
+	 */
+	public void setStateId(int stateId) {
+		this.stateId = stateId;
+	}
+
+
 
 	/**
 	 * @return the currentCity
@@ -54,15 +72,15 @@ public class State {
 	/**
 	 * @return the possibleActions
 	 */
-	public Set<Action> getPossibleActions() {
-		return possibleActions;
+	public Set<City> getPossibleMoves() {
+		return possibleMoves;
 	}
 
 	/**
 	 * @param possibleActions the possibleActions to set
 	 */
-	public void setPossibleActions(Set<Action> possibleActions) {
-		this.possibleActions = possibleActions;
+	public void setPossiblesMoves(Set<City> possibleMoves) {
+		this.possibleMoves = possibleMoves;
 	}
 	
 	

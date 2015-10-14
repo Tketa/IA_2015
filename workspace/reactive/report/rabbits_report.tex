@@ -1,8 +1,9 @@
 
-\documentclass[fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\documentclass[fontsize=12pt]{scrartcl} % A4 paper and 12pt font size
 
 \usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
 %\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage{spverbatim}
 \usepackage[bottom=6em]{geometry}
 \usepackage[english]{babel} % English language/hyphenation
 \usepackage[babel=true]{csquotes} 
@@ -15,6 +16,7 @@
 \usepackage{sectsty} % Allows customizing section commands
 \usepackage{listings} %Allows Java code
 \setlength{\headheight}{0pt} % Customize the height of the header
+
 
 %\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
 %\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
@@ -77,6 +79,70 @@ $$
 Here we describe the algorithm we used
 \section*{Implementation details}
 
+Most of the code was implemented in the class 
+
+\begin{verbatim} ReinforcementLearningModel.java \end{verbatim}
+
+
+which provides static access to compute the best possible actions offline, before the simulation starts.
+
+This class contains the following variables
+
+\begin{verbatim}
+	private static Map<Integer, State> states = new HashMap<>();
+	
+	private static Map<Integer, Map<City, Double>> rewards = new HashMap<>();
+	
+	private static Map<Integer, Map<City, Integer>> stateTransitions = new HashMap<>();
+	
+	private static Map<Integer, Map<City, Double>> Q = new HashMap<>();
+	
+	private static Map<Integer, Double> V = new HashMap<>();
+	
+	private static Map<Integer, City> best = new HashMap<>();
+\end{verbatim}
+
+Here we used Integers as identifiers for the 'State' objects, as they are keys in many other maps and having objects as key in maps is a very bad programming practice.
+The main method, which is called from the 'setup' method from ReactiveTemplate.java is 
+
+\begin{verbatim}
+	public static void offlineProcessing(Topology t, TaskDistribution td, Vehicle v, double discount) {
+\end{verbatim}
+
+This methods starts by generating all states thanks to the 'generateAllStates(Topology t)', and then generates all the possible actions from each state with the private 'generateAllActions' method. The states and possible actions are described in Section \textbf{State representation} \\ \\
+Then the method computes the optimal moves for each states following the algorithm described in class. \\
+
+The tricky part in the code is the \textit{getIdForState(State s)} method which returns the integer identifier of an event. It iterates through the entire map of states and finds the one for which the currentCity and destinationCity are the same (possible moves are always the same if the other two are matching). \\ \\
+
+Move selection happens in the \textbf{public Action act(Vehicle vehicle, Task availableTask)} method implemented by the \textit{ReactiveTemplate.java} class.
+
+\begin{lstlisting}[breaklines]
+	@Override
+	public Action act(Vehicle vehicle, Task availableTask) {
+		
+		Action action;
+		
+		City currentCity = vehicle.getCurrentCity();
+		City potentialDeliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
+		
+		State currentState = new State(-1, currentCity, potentialDeliveryCity);
+		
+		
+		City newDestinationCity = ReinforcementLearningModel.getNextMoveForState(currentState);
+		
+		if(availableTask != null && newDestinationCity.equals(availableTask.deliveryCity)) {
+			System.err.println("Picking up task from [" + currentCity + "] to [" + newDestinationCity + "]") ;
+			action = new Pickup(availableTask);
+		} else {
+			System.err.println("Simply move from [" + currentCity + "] to [" + newDestinationCity + "]");
+			action = new Move(newDestinationCity);
+		}
+		
+		return action; 
+	}
+\end{lstlisting}
+ 
+We reconstruct the state of the agent, and get the next move. If there is a task available, and that the next move corresponds to the destination city for this task, we return a Pickup action to pick it up. Otherwise, we leave the task and move to the city that was computed offline, and that should eventually give a better reward.
 
 \section*{Observations}
 

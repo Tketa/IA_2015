@@ -46,11 +46,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		Action action;
 		
 		City currentCity = vehicle.getCurrentCity();
-		// This method is called when the vehicle is not carrying any task.
-		//City deliveryCity = null;
-		City deliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
+		City potentialDeliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
 		
-		State currentState = new State(-1, currentCity, deliveryCity);
+		State currentState = new State(-1, currentCity, potentialDeliveryCity);
 		
 		
 		City newDestinationCity = ReinforcementLearningModel.getNextMoveForState(currentState);

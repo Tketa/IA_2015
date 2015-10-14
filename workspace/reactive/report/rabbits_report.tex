@@ -1,0 +1,83 @@
+
+\documentclass[fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[bottom=6em]{geometry}
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage[babel=true]{csquotes} 
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{graphicx}
+\usepackage{titlepic}
+\usepackage{bbm}
+\usepackage{color}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{listings} %Allows Java code
+\setlength{\headheight}{0pt} % Customize the height of the header
+
+%\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+%\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+%\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+\title{	
+ %  \includegraphics[width=4cm]{lia-logo.jpg} % also works with logo.pdf
+\normalfont \normalsize 
+\textsc{Intelligent Agents, EPFL} \\ [20pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Reactive agents \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+\author{Jeremy Gotteland \& Quentin Praz} % Your name
+\date{\normalsize\today} % Today's date or a custom date
+\begin{document}
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	PROBLEMS SECTION
+%----------------------------------------------------------------------------------------
+
+\section*{World representation}
+\subsection*{State representation}
+Recall that the agent here refers to a single vehicle.
+We chose to represent the state of an agent as the following:
+\begin{itemize}
+\item Current city: The city in which the agent is currently located.
+\item Destination city: At any time the agent is a state where it could pick up a task to bring to a city. This variable is this potential city. If there is no task to be pick up, this variable is set to $NULL$.
+\item Possible moves: A list of cities which the agent can travel to from current state i.e. its neighbor cities and its potential destination city.
+\end{itemize}
+
+\subsection*{Actions}
+In our state representation, an action is just a move to another city.
+
+\subsection*{Reward}
+The reward for moving from a state to another city $c$ is defined as:
+$$
+R(s,c) = \mathbbm{1}_{ \{ \textit{c = s.destinationCity} \} } \cdot AR(s.currentCity, c) - Km(s.currentCity, c) \cdot CostPerKm
+$$
+
+\subsection*{Probability of transition}
+The probability of transition to the state $s'$ from the state $s$ by moving to city $c$ is defined as:
+$$
+T(s,c,s') = 
+\left\{
+\begin{array}{l}
+ P(c, s'.destinationCity) \text{ if $destinationCity$ is not $NULL$}\\
+ 1-\sum_{c' \in Cities} P(c,c') \text{ otherwise}
+\end{array}
+\right.
+$$
+\section*{Algorithm}
+Here we describe the algorithm we used
+\section*{Implementation details}
+
+
+\section*{Observations}
+
+\end{document}          

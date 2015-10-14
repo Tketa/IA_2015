@@ -38,7 +38,7 @@ public class ReinforcementLearningModel {
 	
 	
 	/** discount factor **/
-	private static Double gamma = 0.8;
+	private static Double gamma = 0.95;
 	
 	
 	
@@ -95,11 +95,11 @@ public class ReinforcementLearningModel {
 					tmp.setDeliveryCity(null);
 					
 					int noPickupId = getIdForState(tmp);
-					
 					sum += V.get(noPickupId) * (1 - probabilitySum);
 					
-					sum = discount * sum;
-					//sum = gamma * sum;
+					
+					//sum = discount * sum;
+					sum = gamma * sum;
 					
 					double qValue = sum + rsa;
 					
@@ -169,7 +169,7 @@ public class ReinforcementLearningModel {
 		
 		states.put(id, s);
 		V.put(id, 0.0);
-		Q.put(id, new HashMap<>());
+		Q.put(id, new HashMap<City, Double>());
 	}
 	
 	private static void generateActionsForStates() {
@@ -195,7 +195,7 @@ public class ReinforcementLearningModel {
 		int fromStateID = getIdForState(fromState);
 		
 		City nextMove = best.get(fromStateID);
-		System.out.println("Next move from State with ID " + fromStateID + " is to city " + nextMove);
+		//System.out.println("Next move from State with ID " + fromStateID + " is to city " + nextMove);
 		return nextMove;
 	}
 	
@@ -223,7 +223,6 @@ public class ReinforcementLearningModel {
 			
 		}
 		
-		System.err.println("Could not find the state " + fromState);
 		return -1;
 	}
 	

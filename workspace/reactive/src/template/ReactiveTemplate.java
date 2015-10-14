@@ -56,8 +56,10 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		City newDestinationCity = ReinforcementLearningModel.getNextMoveForState(currentState);
 		
 		if(availableTask != null && newDestinationCity.equals(availableTask.deliveryCity)) {
+			System.err.println("Picking up task from [" + currentCity + "] to [" + newDestinationCity + "]") ;
 			action = new Pickup(availableTask);
 		} else {
+			System.err.println("Simply move from [" + currentCity + "] to [" + newDestinationCity + "]");
 			action = new Move(newDestinationCity);
 		}
 		

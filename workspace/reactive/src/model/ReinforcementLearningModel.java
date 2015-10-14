@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import logist.plan.Action;
-import logist.plan.Action.Move;
 import logist.simulation.Vehicle;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
@@ -32,15 +30,15 @@ public class ReinforcementLearningModel {
 	 */
 	private static Map<Integer, Map<City, Integer>> stateTransitions = new HashMap<>();
 	
+	private static Map<Integer, Map<City, Double>> Q = new HashMap<>();
 	
 	private static Map<Integer, Double> V = new HashMap<>();
 	
 	private static Map<Integer, City> best = new HashMap<>();
 	
 	
-	
 	/** discount factor **/
-	private static Double gamma = 1.0;
+	private static Double gamma = 0.8;
 	
 	
 	
@@ -55,44 +53,80 @@ public class ReinforcementLearningModel {
 		
 		generateAllStates(t);
 		generateActionsForStates();
+				
+		double difference = Double.MAX_VALUE;
+		final double EPSILON = 1E-10;
 		
-		Map<Integer, Map<City, Double>> Q = new HashMap<>();
 		
-		for (Entry<Integer, State> state : states.entrySet()) {
-			
-			City maxAction = null;
-			double maxActionValue = 0;
-			for(City nextCity : state.getValue().getPossibleMoves()) {
+		while(difference > EPSILON) {
+			System.out.println(difference);
+			double newDifference = 0;
+			for (Entry<Integer, State> state : states.entrySet()) {
+				City maxAction = null;
+				double maxActionValue = Double.NEGATIVE_INFINITY;
 				
-				City currentCity = state.getValue().getCurrentCity();
-				City deliveryCity = state.getValue().getDeliveryCity();
-				
-				// Negative reward for the distance and cost
-				double rsa = - 1.0 * currentCity.distanceTo(nextCity) * v.costPerKm();
-				
-				if(nextCity.equals(deliveryCity)) {
-					rsa += td.reward(currentCity, deliveryCity);
+				for(City nextCity : state.getValue().getPossibleMoves()) {
+					
+					City currentCity = state.getValue().getCurrentCity();
+					City deliveryCity = state.getValue().getDeliveryCity();
+					
+					// Negative reward for the distance and cost
+					double rsa = - 1.0 * currentCity.distanceTo(nextCity) * v.costPerKm();
+					
+					if(nextCity.equals(deliveryCity)) {
+						rsa += td.reward(currentCity, deliveryCity);
+					}
+					// --------------------------------------------------------------------
+					
+					double sum = 0.0;
+					double probabilitySum = 0.0;
+					State tmp = new State(-1, nextCity, null);
+					for (City sprime : t) {
+						tmp.setDeliveryCity(sprime);
+						
+						int sprimeId = getIdForState(tmp);
+						if(sprimeId > -1) {
+							sum += td.probability(nextCity, sprime) * V.get(sprimeId);
+							probabilitySum += td.probability(nextCity, sprime);
+						}
+					}
+					
+					// Add other case probability
+					tmp.setDeliveryCity(null);
+					
+					int noPickupId = getIdForState(tmp);
+					
+					sum += V.get(noPickupId) * (1 - probabilitySum);
+					
+					sum = discount * sum;
+					//sum = gamma * sum;
+					
+					double qValue = sum + rsa;
+					
+					if(qValue > maxActionValue) {
+						maxActionValue = qValue;
+						maxAction = nextCity;
+					} else {
+						//System.out.println("[qValue=" + qValue + " , maxActionValue=" + maxActionValue + "]");
+					}
+					// At the end
+					Q.get(state.getKey()).put(nextCity, qValue);
 				}
-				// --------------------------------------------------------------------
 				
-				double sum = 0.0;
-				for(City sprime : t) {
-					sum += td.probability(nextCity, sprime) * V.get(state.getKey());
-				}
-				sum = gamma * sum;
+				double oldVsValue = V.get(state.getKey()); 
+				newDifference += (maxActionValue - oldVsValue);
 				
-				double qValue = sum + rsa;
-				
-				if(qValue > maxActionValue) {
-					maxActionValue = qValue;
-					maxAction = nextCity;
-				}
-				// At the end
-				Q.get(state.getKey()).put(nextCity, rsa + sum);
+				V.put(state.getKey(), maxActionValue);
+				best.put(state.getKey(), maxAction);
 			}
-			V.put(state.getKey(), maxActionValue);
-			best.put(state.getKey(), maxAction);
+			difference = newDifference;
 		}
+		
+//		for (Entry<Integer, City> entry : best.entrySet()) {
+//			System.out.println(" [BEST for " + entry.getKey() + " : " + entry.getValue());
+//		}
+		
+		
 		
 	}
 	
@@ -109,19 +143,33 @@ public class ReinforcementLearningModel {
 			for(City city : allCities) {
 				for(City otherCity : allCities) {
 					
-					Set<Action> possibleActions = new HashSet<Action>();
+					Set<City> possibleMoves = new HashSet<City>();
+					
+					// Only create state if otherCity is different 
 					if(!city.equals(otherCity)) {
-						states.put(i, new State(i, city, otherCity));
+						createState(i, city, otherCity, null);
 						i++;
 					}
 					
-					states.put(i, new State(i, city, null));
+					createState(i, city, null, null);
 					i++;
 				}
 			}
 			
 		}
+	}
 	
+	private static void createState(int id, City currentCity, City destinationCity, Set<City> possibleMoves) {
+		
+		if(states.containsKey(id)) {
+			System.err.println("[ERROR] State ID " + id + " appears twice");
+		}
+		State s = new State(id, currentCity, destinationCity);
+		s.setPossiblesMoves(possibleMoves);
+		
+		states.put(id, s);
+		V.put(id, 0.0);
+		Q.put(id, new HashMap<>());
 	}
 	
 	private static void generateActionsForStates() {
@@ -139,6 +187,44 @@ public class ReinforcementLearningModel {
 			
 			state.getValue().setPossiblesMoves(moves);
 		}
-		
 	}
+	
+	public static City getNextMoveForState(State fromState) {
+		
+		// Find state ID
+		int fromStateID = getIdForState(fromState);
+		
+		City nextMove = best.get(fromStateID);
+		System.out.println("Next move from State with ID " + fromStateID + " is to city " + nextMove);
+		return nextMove;
+	}
+	
+	private static int getIdForState(State fromState) {
+		// Find state ID
+		int fromStateID = -1;
+		
+		for (Entry<Integer, State> state : states.entrySet()) {
+			
+			State s = state.getValue();
+			if(fromState.getCurrentCity().equals(s.getCurrentCity())) {
+				
+				City fromDelivery = fromState.getDeliveryCity();
+				City sDelivery = s.getDeliveryCity();
+				
+				boolean condition1 = (fromDelivery != null && fromDelivery.equals(sDelivery));
+				boolean condition2 = (fromDelivery == null && sDelivery == null);
+				
+				
+				if(condition1 || condition2) {
+					fromStateID = state.getKey();
+					return fromStateID;
+				}
+			}
+			
+		}
+		
+		System.err.println("Could not find the state " + fromState);
+		return -1;
+	}
+	
 }

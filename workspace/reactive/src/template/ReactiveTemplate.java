@@ -42,15 +42,36 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	@Override
 	public Action act(Vehicle vehicle, Task availableTask) {
+		
 		Action action;
-
-		if (availableTask == null || random.nextDouble() > pPickup) {
-			City currentCity = vehicle.getCurrentCity();
-			action = new Move(currentCity.randomNeighbor(random));
-		} else {
+		
+		City currentCity = vehicle.getCurrentCity();
+		// This method is called when the vehicle is not carrying any task.
+		//City deliveryCity = null;
+		City deliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
+		
+		State currentState = new State(-1, currentCity, deliveryCity);
+		
+		
+		City newDestinationCity = ReinforcementLearningModel.getNextMoveForState(currentState);
+		
+		if(availableTask != null && newDestinationCity.equals(availableTask.deliveryCity)) {
 			action = new Pickup(availableTask);
+		} else {
+			action = new Move(newDestinationCity);
 		}
+		
 		return action;
+		
+//		State currentState = new State(stateId, homeCity, deliveryCity)
+//
+//		if (availableTask == null || random.nextDouble() > pPickup) {
+//			City currentCity = vehicle.getCurrentCity();
+//			action = new Move(currentCity.randomNeighbor(random));
+//		} else {
+//			action = new Pickup(availableTask);
+//		}
+//		return action;
 	}
 	
 	

@@ -145,5 +145,6 @@ Move selection happens in the \textbf{public Action act(Vehicle vehicle, Task av
 We reconstruct the state of the agent, and get the next move. If there is a task available, and that the next move corresponds to the destination city for this task, we return a Pickup action to pick it up. Otherwise, we leave the task and move to the city that was computed offline, and that should eventually give a better reward.
 
 \section*{Observations}
-
+The only parameter we could play on was the discount factor. We tried some very small values and some values close to $1$ but we didn't notice major changes. The only thing that was modified was the time of the pre-computation: the convergence was faster with a small discount factor.\\
+One reason could be that networks are quite small and then the futur events don't count that much in the equation.
 \end{document}          

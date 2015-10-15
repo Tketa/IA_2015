@@ -1,0 +1,150 @@
+
+\documentclass[fontsize=12pt]{scrartcl} % A4 paper and 12pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage{spverbatim}
+\usepackage[bottom=6em]{geometry}
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage[babel=true]{csquotes} 
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{graphicx}
+\usepackage{titlepic}
+\usepackage{bbm}
+\usepackage{color}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{listings} %Allows Java code
+\setlength{\headheight}{0pt} % Customize the height of the header
+
+
+%\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+%\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+%\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+\title{	
+ %  \includegraphics[width=4cm]{lia-logo.jpg} % also works with logo.pdf
+\normalfont \normalsize 
+\textsc{Intelligent Agents, EPFL} \\ [20pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Reactive agents \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+\author{Jeremy Gotteland \& Quentin Praz} % Your name
+\date{\normalsize\today} % Today's date or a custom date
+\begin{document}
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	PROBLEMS SECTION
+%----------------------------------------------------------------------------------------
+
+\section*{World representation}
+\subsection*{State representation}
+Recall that the agent here refers to a single vehicle.
+We chose to represent the state of an agent as the following:
+\begin{itemize}
+\item Current city: The city in which the agent is currently located.
+\item Destination city: At any time the agent is a state where it could pick up a task to bring to a city. This variable is this potential city. If there is no task to be pick up, this variable is set to $NULL$.
+\item Possible moves: A list of cities which the agent can travel to from current state i.e. its neighbor cities and its potential destination city.
+\end{itemize}
+
+\subsection*{Actions}
+In our state representation, an action is just a move to another city.
+
+\subsection*{Reward}
+The reward for moving from a state to another city $c$ is defined as:
+$$
+R(s,c) = \mathbbm{1}_{ \{ \textit{c = s.destinationCity} \} } \cdot AR(s.currentCity, c) - Km(s.currentCity, c) \cdot CostPerKm
+$$
+
+\subsection*{Probability of transition}
+The probability of transition to the state $s'$ from the state $s$ by moving to city $c$ is defined as:
+$$
+T(s,c,s') = 
+\left\{
+\begin{array}{l}
+ P(c, s'.destinationCity) \text{ if $destinationCity$ is not $NULL$}\\
+ 1-\sum_{c' \in Cities} P(c,c') \text{ otherwise}
+\end{array}
+\right.
+$$
+\section*{Algorithm}
+Here we describe the algorithm we used
+\section*{Implementation details}
+
+Most of the code was implemented in the class 
+
+\begin{verbatim} ReinforcementLearningModel.java \end{verbatim}
+
+
+which provides static access to compute the best possible actions offline, before the simulation starts.
+
+This class contains the following variables
+
+\begin{verbatim}
+	private static Map<Integer, State> states = new HashMap<>();
+	
+	private static Map<Integer, Map<City, Double>> rewards = new HashMap<>();
+	
+	private static Map<Integer, Map<City, Integer>> stateTransitions = new HashMap<>();
+	
+	private static Map<Integer, Map<City, Double>> Q = new HashMap<>();
+	
+	private static Map<Integer, Double> V = new HashMap<>();
+	
+	private static Map<Integer, City> best = new HashMap<>();
+\end{verbatim}
+
+Here we used Integers as identifiers for the 'State' objects, as they are keys in many other maps and having objects as key in maps is a very bad programming practice.
+The main method, which is called from the 'setup' method from ReactiveTemplate.java is 
+
+\begin{verbatim}
+	public static void offlineProcessing(Topology t, TaskDistribution td, Vehicle v, double discount) {
+\end{verbatim}
+
+This methods starts by generating all states thanks to the 'generateAllStates(Topology t)', and then generates all the possible actions from each state with the private 'generateAllActions' method. The states and possible actions are described in Section \textbf{State representation} \\ \\
+Then the method computes the optimal moves for each states following the algorithm described in class. \\
+
+The tricky part in the code is the \textit{getIdForState(State s)} method which returns the integer identifier of an event. It iterates through the entire map of states and finds the one for which the currentCity and destinationCity are the same (possible moves are always the same if the other two are matching). \\ \\
+
+Move selection happens in the \textbf{public Action act(Vehicle vehicle, Task availableTask)} method implemented by the \textit{ReactiveTemplate.java} class.
+
+\begin{lstlisting}[breaklines]
+	@Override
+	public Action act(Vehicle vehicle, Task availableTask) {
+		
+		Action action;
+		
+		City currentCity = vehicle.getCurrentCity();
+		City potentialDeliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
+		
+		State currentState = new State(-1, currentCity, potentialDeliveryCity);
+		
+		
+		City newDestinationCity = ReinforcementLearningModel.getNextMoveForState(currentState);
+		
+		if(availableTask != null && newDestinationCity.equals(availableTask.deliveryCity)) {
+			System.err.println("Picking up task from [" + currentCity + "] to [" + newDestinationCity + "]") ;
+			action = new Pickup(availableTask);
+		} else {
+			System.err.println("Simply move from [" + currentCity + "] to [" + newDestinationCity + "]");
+			action = new Move(newDestinationCity);
+		}
+		
+		return action; 
+	}
+\end{lstlisting}
+ 
+We reconstruct the state of the agent, and get the next move. If there is a task available, and that the next move corresponds to the destination city for this task, we return a Pickup action to pick it up. Otherwise, we leave the task and move to the city that was computed offline, and that should eventually give a better reward.
+
+\section*{Observations}
+The only parameter we could play on was the discount factor. We tried some very small values and some values close to $1$ but we didn't notice major changes. The only thing that was modified was the time of the pre-computation: the convergence was faster with a small discount factor.\\
+One reason could be that networks are quite small and then the futur events don't count that much in the equation.
+\end{document}          

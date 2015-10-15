@@ -61,6 +61,7 @@ public class ReinforcementLearningModel {
 		while(difference > EPSILON) {
 			System.out.println(difference);
 			double newDifference = 0;
+			
 			for (Entry<Integer, State> state : states.entrySet()) {
 				City maxAction = null;
 				double maxActionValue = Double.NEGATIVE_INFINITY;
@@ -80,35 +81,38 @@ public class ReinforcementLearningModel {
 					
 					double sum = 0.0;
 					double probabilitySum = 0.0;
+					
+					
+					// Create all the states for which there is a task in nextCity
 					State tmp = new State(-1, nextCity, null);
 					for (City sprime : t) {
 						tmp.setDeliveryCity(sprime);
 						
 						int sprimeId = getIdForState(tmp);
+						
 						if(sprimeId > -1) {
 							sum += td.probability(nextCity, sprime) * V.get(sprimeId);
+							
 							probabilitySum += td.probability(nextCity, sprime);
 						}
 					}
 					
-					// Add other case probability
+					// Add other case probability (no task in nextCity)
 					tmp.setDeliveryCity(null);
-					
 					int noPickupId = getIdForState(tmp);
-					sum += V.get(noPickupId) * (1 - probabilitySum);
+					sum += V.get(noPickupId) *  (1 - probabilitySum); // td.probability(nextCity, null);
 					
 					
-					//sum = discount * sum;
-					sum = gamma * sum;
+					sum = discount * sum;
+					//sum = gamma * sum;
 					
 					double qValue = sum + rsa;
 					
 					if(qValue > maxActionValue) {
 						maxActionValue = qValue;
 						maxAction = nextCity;
-					} else {
-						//System.out.println("[qValue=" + qValue + " , maxActionValue=" + maxActionValue + "]");
 					}
+					
 					// At the end
 					Q.get(state.getKey()).put(nextCity, qValue);
 				}
@@ -122,18 +126,12 @@ public class ReinforcementLearningModel {
 			difference = newDifference;
 		}
 		
-//		for (Entry<Integer, City> entry : best.entrySet()) {
-//			System.out.println(" [BEST for " + entry.getKey() + " : " + entry.getValue());
-//		}
-		
-		
-		
 	}
 	
 	private static void generateAllStates(Topology topology) {
 		
 		if(!states.isEmpty()) {
-			System.err.println("States were already generated! Aborting.");
+			//System.err.println("States were already generated! Aborting.");
 			return;
 		} else {
 			
@@ -142,16 +140,14 @@ public class ReinforcementLearningModel {
 			
 			for(City city : allCities) {
 				for(City otherCity : allCities) {
-					
-					Set<City> possibleMoves = new HashSet<City>();
-					
+										
 					// Only create state if otherCity is different 
 					if(!city.equals(otherCity)) {
-						createState(i, city, otherCity, null);
+						createState(i, city, otherCity);
 						i++;
 					}
 					
-					createState(i, city, null, null);
+					createState(i, city, null);
 					i++;
 				}
 			}
@@ -159,13 +155,13 @@ public class ReinforcementLearningModel {
 		}
 	}
 	
-	private static void createState(int id, City currentCity, City destinationCity, Set<City> possibleMoves) {
+	private static void createState(int id, City currentCity, City destinationCity) {
 		
 		if(states.containsKey(id)) {
 			System.err.println("[ERROR] State ID " + id + " appears twice");
 		}
 		State s = new State(id, currentCity, destinationCity);
-		s.setPossiblesMoves(possibleMoves);
+		//s.setPossiblesMoves(possibleMoves);
 		
 		states.put(id, s);
 		V.put(id, 0.0);
@@ -176,10 +172,13 @@ public class ReinforcementLearningModel {
 		
 		for (Entry<Integer, State> state : states.entrySet()) {
 			Set<City> moves = new HashSet<>();
+			
+			// Iterate over all neighbours to add to moves
 			for (City neighbour : state.getValue().getCurrentCity().neighbors()) {
 				moves.add(neighbour);
 			}
 			
+			// Also add the potential delivery city to the list of moves.
 			City deliveryCity = state.getValue().getDeliveryCity();
 			if(state.getValue().getDeliveryCity() != null) {
 				moves.add(deliveryCity);

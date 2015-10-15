@@ -22,6 +22,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	private Random random;
 	private double pPickup;
+	
+	
+	private Agent agent;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -37,17 +40,31 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		// This agent is a vehicle so it has only one in its list.
 		Vehicle vehicle = agent.vehicles().get(0);
 		
+		// ADDED CODE
+		this.agent = agent;
+		
+		discount = 0.0;
 		ReinforcementLearningModel.offlineProcessing(topology, td, vehicle, discount);
 	}
 
+	// ADDED CODE - this variable counts how many actions have passed so far
+	int counterSteps = 0;
+	
 	@Override
 	public Action act(Vehicle vehicle, Task availableTask) {
+		
+		// ADDED CODE - this output gives information about the "goodness" of your agent (higher values are preferred)
+		if ((counterSteps > 0)&&(counterSteps%100 == 0)) {
+			System.out.println("The total profit after "+counterSteps+" steps is "+agent.getTotalProfit()+".");
+			System.out.println("The profit per action after "+counterSteps+" steps is "+((double)agent.getTotalProfit() / counterSteps)+".");
+		}
+		counterSteps++; 
+		// END OF ADDED CODE	
 		
 		Action action;
 		
 		City currentCity = vehicle.getCurrentCity();
-		// This method is called when the vehicle is not carrying any task.
-		//City deliveryCity = null;
+		
 		City deliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
 		
 		State currentState = new State(-1, currentCity, deliveryCity);
@@ -56,10 +73,10 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		City newDestinationCity = ReinforcementLearningModel.getNextMoveForState(currentState);
 		
 		if(availableTask != null && newDestinationCity.equals(availableTask.deliveryCity)) {
-			System.err.println("Picking up task from [" + currentCity + "] to [" + newDestinationCity + "]") ;
+			//System.err.println("Picking up task from [" + currentCity + "] to [" + newDestinationCity + "]") ;
 			action = new Pickup(availableTask);
 		} else {
-			System.err.println("Simply move from [" + currentCity + "] to [" + newDestinationCity + "]");
+			//System.err.println("Simply move from [" + currentCity + "] to [" + newDestinationCity + "]");
 			action = new Move(newDestinationCity);
 		}
 		
@@ -75,6 +92,5 @@ public class ReactiveTemplate implements ReactiveBehavior {
 //		}
 //		return action;
 	}
-	
 	
 }

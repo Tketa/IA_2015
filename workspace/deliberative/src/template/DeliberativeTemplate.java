@@ -113,19 +113,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		plan = findFinalFromState(currentState, plan);
 		
-		// FLIP PLAN
-		List<Action> actions = new LinkedList<Action>();
-		for (Action action : plan) {
-			actions.add(action);
-		}
-		Collections.reverse(actions);
-		
-		Plan reversedPlan = new Plan(current);
-		for (Action action : actions) {
-			reversedPlan.append(action);
-		}
-		
-		return reversedPlan;
+		return plan;
 	}
 	
 	private Plan findFinalFromState(State fromState, Plan plan) {
@@ -135,14 +123,12 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		for(State s : nextStates) {
 			if(s.isFinal) {
 				
-				for(Task t : fromState.getCarriedTasks()) {
-					plan.appendDelivery(t);
+				for(City onTheWay : fromState.getCurrentCity().pathTo(s.getCurrentCity())) {
+					plan.appendMove(onTheWay);
 				}
 				
-				List<City> reverseList = fromState.getCurrentCity().pathTo(s.getCurrentCity());
-				Collections.reverse(reverseList);
-				for(City onTheWay : reverseList) {
-					plan.appendMove(onTheWay);
+				for(Task t : fromState.getCarriedTasks()) {
+					plan.appendDelivery(t);
 				}
 				
 				return plan;
@@ -156,6 +142,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 			newCarried.removeAll(fromState.getCarriedTasks());
 			oldCarried.removeAll(state.getCarriedTasks());
+						
+			for(City onTheWay : fromState.getCurrentCity().pathTo(state.getCurrentCity())) {
+				plan.appendMove(onTheWay);
+			}
 			
 			for(Task t : oldCarried) {
 				plan.appendDelivery(t);
@@ -163,12 +153,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			
 			for(Task t : newCarried) {
 				plan.appendPickup(t);
-			}
-						
-			List<City> reverseList = fromState.getCurrentCity().pathTo(state.getCurrentCity());
-			Collections.reverse(reverseList);
-			for(City onTheWay : reverseList) {
-				plan.appendMove(onTheWay);
 			}
 			
 			plan = findFinalFromState(state, plan);

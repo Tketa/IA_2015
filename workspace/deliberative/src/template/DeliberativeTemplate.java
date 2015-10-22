@@ -1,10 +1,16 @@
 package template;
 
 /* import table */
-import logist.simulation.Vehicle;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
+import logist.plan.Action;
 import logist.plan.Plan;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.task.TaskSet;
@@ -58,7 +64,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			break;
 		case BFS:
 			// ...
-			plan = naivePlan(vehicle, tasks);
+			plan = bfsPlan(vehicle, tasks);
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
@@ -86,6 +92,88 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// set current city
 			current = task.deliveryCity;
 		}
+		return plan;
+	}
+	
+	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
+		
+		System.out.println("Using BFS plan..");
+		
+		City current = vehicle.getCurrentCity();
+		Plan plan = new Plan(current);
+		
+		int weight = 0;
+		for (Task t : vehicle.getCurrentTasks()) {
+			weight += t.weight;
+		}
+		
+		int freeWeight = vehicle.capacity() - weight;
+		
+		State currentState = new State(current, vehicle.getCurrentTasks(), tasks, weight, freeWeight);
+		
+		plan = findFinalFromState(currentState, plan);
+		
+		// FLIP PLAN
+		List<Action> actions = new LinkedList<Action>();
+		for (Action action : plan) {
+			actions.add(action);
+		}
+		Collections.reverse(actions);
+		
+		Plan reversedPlan = new Plan(current);
+		for (Action action : actions) {
+			reversedPlan.append(action);
+		}
+		
+		return reversedPlan;
+	}
+	
+	private Plan findFinalFromState(State fromState, Plan plan) {
+		
+		Set<State> nextStates = fromState.getNextStates();
+		
+		for(State s : nextStates) {
+			if(s.isFinal) {
+				
+				for(Task t : fromState.getCarriedTasks()) {
+					plan.appendDelivery(t);
+				}
+				
+				List<City> reverseList = fromState.getCurrentCity().pathTo(s.getCurrentCity());
+				Collections.reverse(reverseList);
+				for(City onTheWay : reverseList) {
+					plan.appendMove(onTheWay);
+				}
+				
+				return plan;
+			}
+		}
+		
+		
+		for (State state : nextStates) {
+			TaskSet newCarried = state.getCarriedTasks().clone();
+			TaskSet oldCarried = fromState.getCarriedTasks().clone();
+
+			newCarried.removeAll(fromState.getCarriedTasks());
+			oldCarried.removeAll(state.getCarriedTasks());
+			
+			for(Task t : oldCarried) {
+				plan.appendDelivery(t);
+			}
+			
+			for(Task t : newCarried) {
+				plan.appendPickup(t);
+			}
+						
+			List<City> reverseList = fromState.getCurrentCity().pathTo(state.getCurrentCity());
+			Collections.reverse(reverseList);
+			for(City onTheWay : reverseList) {
+				plan.appendMove(onTheWay);
+			}
+			
+			plan = findFinalFromState(state, plan);
+		}
+		
 		return plan;
 	}
 

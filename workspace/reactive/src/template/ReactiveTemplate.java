@@ -64,12 +64,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		Action action;
 		
 		City currentCity = vehicle.getCurrentCity();
-<<<<<<< HEAD
 		
-		City deliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
-=======
 		City potentialDeliveryCity = (availableTask == null) ? null : availableTask.deliveryCity;
->>>>>>> 37a72d77df99b9f3c0dd5dbf7d7582d7b86bfcff
 		
 		State currentState = new State(-1, currentCity, potentialDeliveryCity);
 		

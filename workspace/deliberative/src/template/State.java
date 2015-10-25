@@ -1,8 +1,13 @@
 package template;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import logist.plan.Action;
+import logist.plan.Action.Delivery;
+import logist.plan.Action.Move;
+import logist.plan.Action.Pickup;
 import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology.City;
@@ -15,6 +20,8 @@ public class State {
 	
 	private TaskSet availableTasks;
 	private TaskSet carriedTasks;
+	
+	private ArrayList<Action> actionList;
 		
 	private int currentWeight;
 	private int freeWeight;
@@ -22,16 +29,17 @@ public class State {
 	
 
 	public State(City currentCity, TaskSet availableTasks,
-			TaskSet carriedTasks, int currentWeight,
-			int freeWeight) {
+			TaskSet carriedTasks, ArrayList<Action> action, 
+			int currentWeight, int freeWeight) {
 		super();
 		this.currentCity = currentCity;
 		this.availableTasks = availableTasks;
 		this.carriedTasks = carriedTasks;
+		this.actionList = action;
 		this.currentWeight = currentWeight;
 		this.freeWeight = freeWeight;
 		
-		this.isFinal = this.availableTasks.isEmpty(); 
+		this.isFinal = this.availableTasks.isEmpty() && this.carriedTasks.isEmpty(); 
 	}
 	
 	public Set<State> getNextStates(){
@@ -42,13 +50,13 @@ public class State {
 		TaskSet tmpAvailableTask = availableTasks.clone();
 		
 		
-		
 		// Find the annoying case where we deliver a task in a city where we can get a new one.
 		for (Task carried : carriedTasks) {
 			for (Task available : availableTasks) {
 				
 				// Only take the available task if we have enough free weight AFTER DROPPING THE CARRIED ONE hehe.
 				if(available.weight <= (freeWeight + carried.weight) && carried.deliveryCity.equals(available.pickupCity)) {
+					
 					TaskSet newCarried = carriedTasks.clone();
 					newCarried.remove(carried);
 					newCarried.add(available);
@@ -56,10 +64,15 @@ public class State {
 					TaskSet newAvailable = availableTasks.clone();
 					newAvailable.remove(available);
 					
+					ArrayList<Action> tmpActionList = new ArrayList<Action>(actionList);
+					tmpActionList.add(new Move(carried.deliveryCity));
+					tmpActionList.add(new Delivery(carried));
+					tmpActionList.add(new Pickup(available));
+					
 					int newWeight = currentWeight + available.weight - carried.weight;
 					int newFreeWeight = freeWeight + carried.weight - available.weight;
 					
-					states.add(new State(carried.deliveryCity, newAvailable, newCarried, newWeight, newFreeWeight));
+					states.add(new State(carried.deliveryCity, newAvailable, newCarried, tmpActionList, newWeight, newFreeWeight));
 					
 					tmpCarriedTask.remove(carried);
 					tmpAvailableTask.remove(available);
@@ -81,10 +94,14 @@ public class State {
 			TaskSet newCarried = carriedTasks.clone();
 			newCarried.add(available);
 			
+			ArrayList<Action> tmpActionList = new ArrayList<Action>(actionList);
+			tmpActionList.add(new Move(available.deliveryCity));
+			tmpActionList.add(new Pickup(available));
+			
 			int newWeight = currentWeight + available.weight;
 			int newFreeWeight = freeWeight - available.weight;
 			
-			states.add(new State(available.pickupCity, newAvailable, newCarried, newWeight, newFreeWeight));
+			states.add(new State(available.pickupCity, newAvailable, newCarried, tmpActionList, newWeight, newFreeWeight));
 		}
 		
 		// Handle the cases where we DELIVER tasks to cities
@@ -92,14 +109,24 @@ public class State {
 			TaskSet newCarried = carriedTasks.clone();
 			newCarried.remove(carried);
 			
-			int newWeight = currentWeight  - carried.weight;
+			int newWeight = currentWeight - carried.weight;
 			int newFreeWeight = freeWeight + carried.weight;
 			
-			states.add(new State(carried.deliveryCity, availableTasks, newCarried, newWeight, newFreeWeight));
+			ArrayList<Action> tmpActionList = new ArrayList<Action>(actionList);
+			tmpActionList.add(new Move(carried.deliveryCity));
+			tmpActionList.add(new Delivery(carried));
+			
+			states.add(new State(carried.deliveryCity, availableTasks, newCarried, tmpActionList, newWeight, newFreeWeight));
 		}
-
-		
 		return states;
+	}
+
+	public ArrayList<Action> getActionList() {
+		return actionList;
+	}
+
+	public void setActionList(ArrayList<Action> actionList) {
+		this.actionList = actionList;
 	}
 
 	/**

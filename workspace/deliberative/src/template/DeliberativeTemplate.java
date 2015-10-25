@@ -1,6 +1,7 @@
 package template;
 
 /* import table */
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -109,7 +110,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		int freeWeight = vehicle.capacity() - weight;
 		
-		State currentState = new State(current, vehicle.getCurrentTasks(), tasks, weight, freeWeight);
+		State currentState = new State(current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(),  weight, freeWeight);
 		
 		plan = findFinalFromState(currentState, plan);
 		
@@ -117,6 +118,24 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	}
 	
 	private Plan findFinalFromState(State fromState, Plan plan) {
+		
+		LinkedList<State> Q = new LinkedList<State>();
+		ArrayList<State> C = new ArrayList<State>();
+		
+		boolean reachFinal = false;
+		State finalState;
+		
+		Q.add(fromState);
+		
+		while(!reachFinal){
+			if(Q.isEmpty()){
+				reachFinal = true;
+			}
+			else{
+				State currentState = Q.poll();
+				//TODO Terminer le BFS mais je suis pas convaincu d'un truc, il faudra en parler!
+			}
+		}
 		
 		Set<State> nextStates = fromState.getNextStates();
 		

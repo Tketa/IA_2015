@@ -55,7 +55,7 @@ public class State {
 			for (Task available : availableTasks) {
 				
 				// Only take the available task if we have enough free weight AFTER DROPPING THE CARRIED ONE hehe.
-				if(available.weight <= (freeWeight + carried.weight) && carried.deliveryCity.equals(available.pickupCity)) {
+				if(carried.deliveryCity.equals(available.pickupCity) && available.weight <= (freeWeight + carried.weight)) {
 					
 					TaskSet newCarried = carriedTasks.clone();
 					newCarried.remove(carried);
@@ -65,7 +65,9 @@ public class State {
 					newAvailable.remove(available);
 					
 					ArrayList<Action> tmpActionList = new ArrayList<Action>(actionList);
-					tmpActionList.add(new Move(carried.deliveryCity));
+					for (City city : currentCity.pathTo(carried.deliveryCity)) {
+						tmpActionList.add(new Move(city));
+					}
 					tmpActionList.add(new Delivery(carried));
 					tmpActionList.add(new Pickup(available));
 					
@@ -88,14 +90,15 @@ public class State {
 				// Passe ton chemin.
 				continue;
 			
-			
 			TaskSet newAvailable = availableTasks.clone();
 			newAvailable.remove(available);
 			TaskSet newCarried = carriedTasks.clone();
 			newCarried.add(available);
 			
 			ArrayList<Action> tmpActionList = new ArrayList<Action>(actionList);
-			tmpActionList.add(new Move(available.deliveryCity));
+			for (City city : currentCity.pathTo(available.pickupCity)) {
+				tmpActionList.add(new Move(city));
+			}
 			tmpActionList.add(new Pickup(available));
 			
 			int newWeight = currentWeight + available.weight;
@@ -113,7 +116,9 @@ public class State {
 			int newFreeWeight = freeWeight + carried.weight;
 			
 			ArrayList<Action> tmpActionList = new ArrayList<Action>(actionList);
-			tmpActionList.add(new Move(carried.deliveryCity));
+			for (City city : currentCity.pathTo(carried.deliveryCity)) {
+				tmpActionList.add(new Move(city));
+			}
 			tmpActionList.add(new Delivery(carried));
 			
 			states.add(new State(carried.deliveryCity, availableTasks, newCarried, tmpActionList, newWeight, newFreeWeight));

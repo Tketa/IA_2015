@@ -1,8 +1,10 @@
 package template;
 
 /* import table */
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -112,18 +114,19 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		State currentState = new State(current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(),  weight, freeWeight);
 		
-		plan = findFinalFromState(currentState, plan);
+		plan = findFinalFromState(currentState);
 		
 		return plan;
 	}
 	
-	private Plan findFinalFromState(State fromState, Plan plan) {
+	private Plan findFinalFromState(State fromState) {
 		
-		LinkedList<State> Q = new LinkedList<State>();
+		Plan plan = null;
+		ArrayDeque<State> Q = new ArrayDeque<State>(); //Need a LIFO structure
 		ArrayList<State> C = new ArrayList<State>();
 		
 		boolean reachFinal = false;
-		State finalState;
+		State finalState = null;
 		
 		Q.add(fromState);
 		
@@ -133,10 +136,22 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			}
 			else{
 				State currentState = Q.poll();
-				//TODO Terminer le BFS mais je suis pas convaincu d'un truc, il faudra en parler!
+				if(!C.contains(currentState)){
+					if(currentState.isFinal == true){
+					finalState = currentState;
+					reachFinal = true;
+					}
+					else{
+						C.add(currentState);
+						Q.addAll(currentState.getNextStates());
+					}
+				}
+			}
+			if(finalState != null){
+				plan = new Plan(fromState.getCurrentCity(), finalState.getActionList());
 			}
 		}
-		
+		/*
 		Set<State> nextStates = fromState.getNextStates();
 		
 		for(State s : nextStates) {
@@ -176,7 +191,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			
 			plan = findFinalFromState(state, plan);
 		}
-		
+		*/
 		return plan;
 	}
 

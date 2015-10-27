@@ -22,6 +22,8 @@ public class State {
 	private TaskSet carriedTasks;
 	
 	private ArrayList<Action> actionList;
+	
+	private int heuristicValue;
 		
 	private int currentWeight;
 	private int freeWeight;
@@ -30,16 +32,17 @@ public class State {
 
 	public State(City currentCity, TaskSet availableTasks,
 			TaskSet carriedTasks, ArrayList<Action> action, 
-			int currentWeight, int freeWeight) {
+			int hvalue, int currentWeight, int freeWeight) {
 		super();
 		this.currentCity = currentCity;
 		this.availableTasks = availableTasks;
 		this.carriedTasks = carriedTasks;
 		this.actionList = action;
+		this.heuristicValue = hvalue;
 		this.currentWeight = currentWeight;
 		this.freeWeight = freeWeight;
 		
-		this.isFinal = this.availableTasks.isEmpty() && this.carriedTasks.isEmpty(); 
+		this.isFinal = this.availableTasks.isEmpty() && this.carriedTasks.isEmpty();
 	}
 	
 	public Set<State> getNextStates(){
@@ -48,6 +51,8 @@ public class State {
 		
 		TaskSet tmpCarriedTask = carriedTasks.clone();
 		TaskSet tmpAvailableTask = availableTasks.clone();
+		
+		//TODO Il y a grandement moyen d'optimiser ca je pense!
 		
 		
 		// Find the annoying case where we deliver a task in a city where we can get a new one.
@@ -79,7 +84,6 @@ public class State {
 					tmpCarriedTask.remove(carried);
 					tmpAvailableTask.remove(available);
 				}
-				
 			}
 		}
 		

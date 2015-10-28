@@ -1,8 +1,8 @@
 package template;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import logist.plan.Action;
 import logist.plan.Action.Delivery;
@@ -32,14 +32,15 @@ public class State implements Comparable<State>{
 	private int currentWeight;
 	private int freeWeight;
 	
-	
+	public int stateDepth;
 
 	public State(Vehicle vehicle, City currentCity, TaskSet availableTasks,
 			TaskSet carriedTasks, ArrayList<Action> action, 
-			double gCost, int currentWeight, int freeWeight) {
+			double gCost, int currentWeight, int freeWeight, int stateDepth) {
 		super();
 		this.vehicle = vehicle;
 		this.currentCity = currentCity;
+		
 		this.availableTasks = availableTasks;
 		this.carriedTasks = carriedTasks;
 		this.actionList = action;
@@ -47,36 +48,33 @@ public class State implements Comparable<State>{
 		this.currentWeight = currentWeight;
 		this.freeWeight = freeWeight;
 		
+		this.stateDepth = stateDepth;
+		
 		this.isFinal = this.availableTasks.isEmpty() && this.carriedTasks.isEmpty();
 		
 		double heuristicTmp = 0;
 		for (Task ta : availableTasks) {
-			if(heuristicTmp < ta.pathLength()) heuristicTmp = ta.pathLength();
+			double tmpCost = (currentCity.distanceTo(ta.deliveryCity) + ta.pathLength())*vehicle.costPerKm();
+			if(heuristicTmp < tmpCost) heuristicTmp = tmpCost;
 		}
 		for(Task tc: carriedTasks){
-			if(heuristicTmp < currentCity.distanceTo(tc.deliveryCity)) heuristicTmp = currentCity.distanceTo(tc.deliveryCity);
+			double tmpCost = currentCity.distanceTo(tc.deliveryCity)*vehicle.costPerKm();
+			if(heuristicTmp < tmpCost) heuristicTmp = tmpCost;
 		}
 		this.hCost = heuristicTmp;
 		this.fCost = hCost + gCost;
 	}
 	
-	public Set<State> getNextStates(){
+	public List<State> getNextStates(){
 		
-		Set<State> states = new HashSet<State>();
-		
-		TaskSet tmpCarriedTask = carriedTasks.clone();
-		TaskSet tmpAvailableTask = availableTasks.clone();
-		
-		//TODO Il y a grandement moyen d'optimiser ca je pense!
-		
-		
+		LinkedList<State> states = new LinkedList<State>();
+			
 		// Find the annoying case where we deliver a task in a city where we can get a new one.
-		for (Task carried : carriedTasks) {
+		/*for (Task carried : carriedTasks) {
 			for (Task available : availableTasks) {
 				
 				// Only take the available task if we have enough free weight AFTER DROPPING THE CARRIED ONE hehe.
 				if(carried.deliveryCity.equals(available.pickupCity) && available.weight <= (freeWeight + carried.weight)) {
-					
 					TaskSet newCarried = carriedTasks.clone();
 					newCarried.remove(carried);
 					newCarried.add(available);
@@ -96,16 +94,13 @@ public class State implements Comparable<State>{
 					int newWeight = currentWeight + available.weight - carried.weight;
 					int newFreeWeight = freeWeight + carried.weight - available.weight;
 					
-					states.add(new State(vehicle, carried.deliveryCity, newAvailable, newCarried, tmpActionList, newCost, newWeight, newFreeWeight));
-					
-					tmpCarriedTask.remove(carried);
-					tmpAvailableTask.remove(available);
+					states.add(new State(vehicle, carried.deliveryCity, newAvailable, newCarried, tmpActionList, newCost, newWeight, newFreeWeight, stateDepth + 1));
 				}
 			}
-		}
+		}*/
 		
 		// Handle the case where we PICKUP tasks from cities
-		for(Task available : tmpAvailableTask) {
+		for(Task available : availableTasks) {
 			
 			if(available.weight > freeWeight)
 				// Passe ton chemin.
@@ -127,11 +122,11 @@ public class State implements Comparable<State>{
 			int newWeight = currentWeight + available.weight;
 			int newFreeWeight = freeWeight - available.weight;
 			
-			states.add(new State(vehicle, available.pickupCity, newAvailable, newCarried, tmpActionList, newCost, newWeight, newFreeWeight));
+			states.add(new State(vehicle, available.pickupCity, newAvailable, newCarried, tmpActionList, newCost, newWeight, newFreeWeight, stateDepth + 1));
 		}
 		
 		// Handle the cases where we DELIVER tasks to cities
-		for (Task carried : tmpCarriedTask) {
+		for (Task carried : carriedTasks) {
 			TaskSet newCarried = carriedTasks.clone();
 			newCarried.remove(carried);
 			
@@ -146,7 +141,7 @@ public class State implements Comparable<State>{
 			int newWeight = currentWeight - carried.weight;
 			int newFreeWeight = freeWeight + carried.weight;
 			
-			states.add(new State(vehicle, carried.deliveryCity, availableTasks, newCarried, tmpActionList, newCost, newWeight, newFreeWeight));
+			states.add(new State(vehicle, carried.deliveryCity, availableTasks, newCarried, tmpActionList, newCost, newWeight, newFreeWeight, stateDepth + 1));
 		}
 		return states;
 	}

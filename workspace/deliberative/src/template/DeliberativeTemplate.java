@@ -1,10 +1,11 @@
 package template;
 
 /* import table */
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
+import java.util.Set;
 
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
@@ -55,7 +56,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	@Override
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan;
-
 		// Compute the plan with the selected algorithm.
 		switch (algorithm) {
 		case NAIVE:
@@ -114,7 +114,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
 		
 		System.out.println("Using BFS plan..");
-		
 		City current = vehicle.getCurrentCity();
 		
 		int weight = 0;
@@ -124,11 +123,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		int freeWeight = vehicle.capacity() - weight;
 		
-		State currentState = new State(vehicle, current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(), 0, weight, freeWeight);
+		State currentState = new State(vehicle, current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(), 0, weight, freeWeight, 0);
 		
 		Plan plan = null;
 		LinkedList<State> Q = new LinkedList<State>();
-		//ArrayDeque<State> Q = new ArrayDeque<State>();
 		ArrayList<State> C = new ArrayList<State>();
 		
 		boolean reachFinal = false;
@@ -156,13 +154,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			if(finalState != null){
 				plan = new Plan(currentState.getCurrentCity(), finalState.getActionList());
 			}
-		}	
+		}
 		return plan;
 	}
 	
 	private Plan astarPlan(Vehicle vehicle, TaskSet tasks){
 		
 		System.out.println("Using A* plan..");
+		
+		System.out.println("Vehicle : "+vehicle.capacity()+ " "+vehicle.costPerKm());
+		System.out.println(tasks.toString());
 		
 		City current = vehicle.getCurrentCity();
 		
@@ -173,7 +174,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		int freeWeight = vehicle.capacity() - weight;
 		
-		State currentState = new State(vehicle, current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(), 0, weight, freeWeight);
+		State currentState = new State(vehicle, current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(), 0, weight, freeWeight, 0);
 		City initialCity = currentState.getCurrentCity();
 		
 		Plan plan = null;
@@ -184,7 +185,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		State finalState = null;
 		
 		Q.add(currentState);
-		
+				
 		while(!reachFinal){
 			if(Q.isEmpty()){
 				reachFinal = true;
@@ -207,7 +208,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				plan = new Plan(initialCity, finalState.getActionList());
 			}
 		}
-		
 		return plan;
 	}
 

@@ -8,12 +8,14 @@ import logist.plan.Action;
 import logist.plan.Action.Delivery;
 import logist.plan.Action.Move;
 import logist.plan.Action.Pickup;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology.City;
 
-public class State {
+public class State implements Comparable<State>{
 	
+	private Vehicle vehicle;
 	private City currentCity;
 	
 	boolean isFinal;
@@ -23,26 +25,39 @@ public class State {
 	
 	private ArrayList<Action> actionList;
 	
-	private int heuristicValue;
+	private double hCost;
+	private double gCost;
+	private double fCost;
 		
 	private int currentWeight;
 	private int freeWeight;
 	
 	
 
-	public State(City currentCity, TaskSet availableTasks,
+	public State(Vehicle vehicle, City currentCity, TaskSet availableTasks,
 			TaskSet carriedTasks, ArrayList<Action> action, 
-			int hvalue, int currentWeight, int freeWeight) {
+			double gCost, int currentWeight, int freeWeight) {
 		super();
+		this.vehicle = vehicle;
 		this.currentCity = currentCity;
 		this.availableTasks = availableTasks;
 		this.carriedTasks = carriedTasks;
 		this.actionList = action;
-		this.heuristicValue = hvalue;
+		this.gCost = gCost;
 		this.currentWeight = currentWeight;
 		this.freeWeight = freeWeight;
 		
 		this.isFinal = this.availableTasks.isEmpty() && this.carriedTasks.isEmpty();
+		
+		double heuristicTmp = 0;
+		for (Task ta : availableTasks) {
+			if(heuristicTmp < ta.pathLength()) heuristicTmp = ta.pathLength();
+		}
+		for(Task tc: carriedTasks){
+			if(heuristicTmp < currentCity.distanceTo(tc.deliveryCity)) heuristicTmp = currentCity.distanceTo(tc.deliveryCity);
+		}
+		this.hCost = heuristicTmp;
+		this.fCost = hCost + gCost;
 	}
 	
 	public Set<State> getNextStates(){
@@ -76,10 +91,12 @@ public class State {
 					tmpActionList.add(new Delivery(carried));
 					tmpActionList.add(new Pickup(available));
 					
+					double newCost = gCost + currentCity.distanceTo(carried.deliveryCity)*vehicle.costPerKm();
+					
 					int newWeight = currentWeight + available.weight - carried.weight;
 					int newFreeWeight = freeWeight + carried.weight - available.weight;
 					
-					states.add(new State(carried.deliveryCity, newAvailable, newCarried, tmpActionList, newWeight, newFreeWeight));
+					states.add(new State(vehicle, carried.deliveryCity, newAvailable, newCarried, tmpActionList, newCost, newWeight, newFreeWeight));
 					
 					tmpCarriedTask.remove(carried);
 					tmpAvailableTask.remove(available);
@@ -105,10 +122,12 @@ public class State {
 			}
 			tmpActionList.add(new Pickup(available));
 			
+			double newCost = gCost + currentCity.distanceTo(available.pickupCity)*vehicle.costPerKm();
+			
 			int newWeight = currentWeight + available.weight;
 			int newFreeWeight = freeWeight - available.weight;
 			
-			states.add(new State(available.pickupCity, newAvailable, newCarried, tmpActionList, newWeight, newFreeWeight));
+			states.add(new State(vehicle, available.pickupCity, newAvailable, newCarried, tmpActionList, newCost, newWeight, newFreeWeight));
 		}
 		
 		// Handle the cases where we DELIVER tasks to cities
@@ -116,18 +135,28 @@ public class State {
 			TaskSet newCarried = carriedTasks.clone();
 			newCarried.remove(carried);
 			
-			int newWeight = currentWeight - carried.weight;
-			int newFreeWeight = freeWeight + carried.weight;
-			
 			ArrayList<Action> tmpActionList = new ArrayList<Action>(actionList);
 			for (City city : currentCity.pathTo(carried.deliveryCity)) {
 				tmpActionList.add(new Move(city));
 			}
 			tmpActionList.add(new Delivery(carried));
 			
-			states.add(new State(carried.deliveryCity, availableTasks, newCarried, tmpActionList, newWeight, newFreeWeight));
+			double newCost = gCost + currentCity.distanceTo(carried.deliveryCity)*vehicle.costPerKm();
+			
+			int newWeight = currentWeight - carried.weight;
+			int newFreeWeight = freeWeight + carried.weight;
+			
+			states.add(new State(vehicle, carried.deliveryCity, availableTasks, newCarried, tmpActionList, newCost, newWeight, newFreeWeight));
 		}
 		return states;
+	}
+
+	public double getfCost() {
+		return fCost;
+	}
+
+	public double getHeuristicValue() {
+		return hCost;
 	}
 
 	public ArrayList<Action> getActionList() {
@@ -208,9 +237,7 @@ public class State {
 		this.freeWeight = freeWeight;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -223,13 +250,10 @@ public class State {
 				+ ((currentCity == null) ? 0 : currentCity.hashCode());
 		result = prime * result + currentWeight;
 		result = prime * result + freeWeight;
-		result = prime * result + (isFinal ? 1231 : 1237);
+		result = prime * result + ((vehicle == null) ? 0 : vehicle.hashCode());
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -258,15 +282,11 @@ public class State {
 			return false;
 		if (freeWeight != other.freeWeight)
 			return false;
-		if (isFinal != other.isFinal)
-			return false;
 		return true;
 	}
-	
-	
-	
-	
-	
-	
 
+	@Override
+	public int compareTo(State s) {
+		return Double.compare(this.fCost, s.fCost);
+	}
 }

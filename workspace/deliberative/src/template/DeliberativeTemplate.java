@@ -1,13 +1,10 @@
 package template;
 
 /* import table */
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
@@ -26,7 +23,7 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class DeliberativeTemplate implements DeliberativeBehavior {
 
-	enum Algorithm { BFS, ASTAR }
+	enum Algorithm { BFS, ASTAR, NAIVE}
 	
 	/* Environment */
 	Topology topology;
@@ -61,13 +58,29 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// Compute the plan with the selected algorithm.
 		switch (algorithm) {
-		case ASTAR:
+		case NAIVE:
 			// ...
 			plan = naivePlan(vehicle, tasks);
 			break;
+		case ASTAR:
+			// ...
+			long startTime = System.currentTimeMillis();
+			
+			plan = astarPlan(vehicle, tasks);
+			
+			long stopTime = System.currentTimeMillis();
+			long elapsedTime = stopTime - startTime;
+			System.out.println(1.0*elapsedTime/1000+"s");
+			break;
 		case BFS:
 			// ...
+			startTime = System.currentTimeMillis();
+			
 			plan = bfsPlan(vehicle, tasks);
+			
+			stopTime = System.currentTimeMillis();
+			elapsedTime = stopTime - startTime;
+			System.out.println(1.0*elapsedTime/1000+"s");
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
@@ -103,7 +116,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		System.out.println("Using BFS plan..");
 		
 		City current = vehicle.getCurrentCity();
-		Plan plan = new Plan(current);
 		
 		int weight = 0;
 		for (Task t : vehicle.getCurrentTasks()) {
@@ -112,86 +124,90 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		int freeWeight = vehicle.capacity() - weight;
 		
-		State currentState = new State(current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(),  weight, freeWeight);
-		
-		plan = findFinalFromState(currentState);
-		
-		return plan;
-	}
-	
-	private Plan findFinalFromState(State fromState) {
+		State currentState = new State(vehicle, current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(), 0, weight, freeWeight);
 		
 		Plan plan = null;
-		ArrayDeque<State> Q = new ArrayDeque<State>(); //Need a LIFO structure
+		LinkedList<State> Q = new LinkedList<State>();
+		//ArrayDeque<State> Q = new ArrayDeque<State>();
 		ArrayList<State> C = new ArrayList<State>();
 		
 		boolean reachFinal = false;
 		State finalState = null;
 		
-		Q.add(fromState);
+		Q.add(currentState);
 		
 		while(!reachFinal){
 			if(Q.isEmpty()){
 				reachFinal = true;
 			}
 			else{
-				State currentState = Q.poll();
-				if(!C.contains(currentState)){
-					if(currentState.isFinal == true){
-					finalState = currentState;
+				State tmpState = Q.poll();
+				if(!C.contains(tmpState)){
+					if(tmpState.isFinal == true){
+					finalState = tmpState;
 					reachFinal = true;
 					}
 					else{
-						C.add(currentState);
-						Q.addAll(currentState.getNextStates());
+						C.add(tmpState);
+						Q.addAll(tmpState.getNextStates());
 					}
 				}
 			}
 			if(finalState != null){
-				plan = new Plan(fromState.getCurrentCity(), finalState.getActionList());
+				plan = new Plan(currentState.getCurrentCity(), finalState.getActionList());
 			}
-		}
-		/*
-		Set<State> nextStates = fromState.getNextStates();
+		}	
+		return plan;
+	}
+	
+	private Plan astarPlan(Vehicle vehicle, TaskSet tasks){
 		
-		for(State s : nextStates) {
-			if(s.isFinal) {
-				
-				for(City onTheWay : fromState.getCurrentCity().pathTo(s.getCurrentCity())) {
-					plan.appendMove(onTheWay);
+		System.out.println("Using A* plan..");
+		
+		City current = vehicle.getCurrentCity();
+		
+		int weight = 0;
+		for (Task t : vehicle.getCurrentTasks()) {
+			weight += t.weight;
+		}
+		
+		int freeWeight = vehicle.capacity() - weight;
+		
+		State currentState = new State(vehicle, current, tasks, vehicle.getCurrentTasks(), new ArrayList<Action>(), 0, weight, freeWeight);
+		City initialCity = currentState.getCurrentCity();
+		
+		Plan plan = null;
+		LinkedList<State> Q = new LinkedList<State>();	
+		ArrayList<State> C = new ArrayList<State>();
+		
+		boolean reachFinal = false;
+		State finalState = null;
+		
+		Q.add(currentState);
+		
+		while(!reachFinal){
+			if(Q.isEmpty()){
+				reachFinal = true;
+			}
+			else{
+				State tmpState = Q.poll();
+				if(!C.contains(tmpState) || tmpState.getHeuristicValue() < C.get(C.indexOf(tmpState)).getHeuristicValue()){
+					if(tmpState.isFinal == true){
+						finalState = tmpState;
+						reachFinal = true;
+					} else{
+						C.add(tmpState);
+						Q.addAll(tmpState.getNextStates());
+						Collections.sort(Q);
+					}
 				}
-				
-				for(Task t : fromState.getCarriedTasks()) {
-					plan.appendDelivery(t);
-				}
-				
-				return plan;
+				currentState = tmpState;
+			}
+			if(finalState != null){
+				plan = new Plan(initialCity, finalState.getActionList());
 			}
 		}
 		
-		
-		for (State state : nextStates) {
-			TaskSet newCarried = state.getCarriedTasks().clone();
-			TaskSet oldCarried = fromState.getCarriedTasks().clone();
-
-			newCarried.removeAll(fromState.getCarriedTasks());
-			oldCarried.removeAll(state.getCarriedTasks());
-						
-			for(City onTheWay : fromState.getCurrentCity().pathTo(state.getCurrentCity())) {
-				plan.appendMove(onTheWay);
-			}
-			
-			for(Task t : oldCarried) {
-				plan.appendDelivery(t);
-			}
-			
-			for(Task t : newCarried) {
-				plan.appendPickup(t);
-			}
-			
-			plan = findFinalFromState(state, plan);
-		}
-		*/
 		return plan;
 	}
 

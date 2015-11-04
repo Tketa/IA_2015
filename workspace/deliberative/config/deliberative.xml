@@ -7,13 +7,12 @@
 	<settings import="config/settings_default.xml" />
 	
 	<!-- load the topology -->
-	<topology import="config/topology/england.xml" />
-	
+	<topology import="config/topology/switzerland.xml" />
 	<!-- load agents -->
 	<agents import="config/agents.xml" />
 	
 	<!-- define task distribution -->
-	<tasks number="7" rngSeed="23456">
+	<tasks number="10" rngSeed="23456">
 		<!--
 			the probabilities, rewards and weight of tasks
 		-->
@@ -29,8 +28,7 @@
 			<!-- the first vehicle (blue) -->
 			<vehicle name="Vehicle 1">
 				<set color="#0000ff" />
-				<set home="Cardiff" />
-				<!--<set home="Lausanne" />-->
+				<set home="Lausanne" />
 				<set speed="90" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -41,8 +39,7 @@
 			<!-- the second vehicle (red) -->
 			<vehicle name="Vehicle 2">
 				<set color="#ff0000" />
-				<set home="Liverpool" />
-				<!--<set home="Zürich" />-->
+				<set home="Zürich" />
 				<set speed="90" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -53,8 +50,7 @@
 			<!-- the third vehicle (green) -->
 			<vehicle name="Vehicle 3">
 				<set color="#00ff00" />
-				<set home="London" />
-				<!--<set home="Bern" />-->
+				<set home="Bern" />
 				<set speed="90" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -65,8 +61,7 @@
 			<!-- the fourth vehicle (yellow) -->
 			<vehicle name="Vehicle 4">
 				<set color="#ffff00" />
-				<set home="Portsmouth" />
-				<!--<set home="Basel" />-->
+				<set home="Basel" />
 				<set speed="90" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -77,8 +72,7 @@
 			<!-- the fifth vehicle (magenta) -->
 			<vehicle name="Vehicle 5">
 				<set color="#ff00ff" />
-				<set home="Manchester" />
-				<!--<set home="Thun" />-->
+				<set home="Thun" />
 				<set speed="220" />
 				<set capacity="80" />
 				<set cost-per-km="5" />
@@ -89,8 +83,7 @@
 			<!-- the sixth vehicle (cyan) -->
 			<vehicle name="Vehicle 6">
 				<set color="#00ffff" />
-				<set home="Leeds" />
-				<!--<set home="Luzern" />-->
+				<set home="Luzern" />
 				<set speed="220" />
 				<set capacity="80" />
 				<set cost-per-km="5" />

@@ -133,12 +133,14 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		State finalState = null;
 		
 		Q.add(currentState);
+		int nbrStateVisited = 0;
 		
 		while(!reachFinal){
 			if(Q.isEmpty()){
 				reachFinal = true;
 			}
 			else{
+				nbrStateVisited++;
 				State tmpState = Q.poll();
 				if(!C.contains(tmpState)){
 					if(tmpState.isFinal == true){
@@ -155,6 +157,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				plan = new Plan(currentState.getCurrentCity(), finalState.getActionList());
 			}
 		}
+		System.out.println("Nbr of state"+nbrStateVisited);
 		return plan;
 	}
 	

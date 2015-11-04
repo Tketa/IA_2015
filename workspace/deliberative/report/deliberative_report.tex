@@ -89,9 +89,10 @@ $$ C(c_i, c_j) = D(c_i, c_j) * CPK $$
 
 Our heuristic for A* is the following:
 
-Given a state \textbf{S} in city $c_{current}$, that can go deliver tasks in a set of city \textbf{D}, and pickup tasks in a set of cities \textbf{P}, their union being the set of next possible cities given state \textbf{S} : $\textbf{N} = \textbf{D} \cup \textbf{P}$ the heuristic $H_S$ is equal to 
+Given a state \textbf{S} in city $c_{current}$, that can go deliver tasks in a set of city \textbf{D}, and pickup tasks in a set of cities \textbf{P}, each containing a task to be delivered to a city \textbf{$p_{delivery}$}. \\
+The heuristic $H_S$ is equal to 
 
-$$ H_S = \max(\max(C(c_{current}, c_n)), \max(C(x)) ), \forall c_n \in \textbf{N} $$
+$$ H_S = \max(\max(C(c_{current}, c_n)), \max(C(c_{current}, c_p) + C(c_p, p_{delivery}) ), \forall c_d \in \textbf{D}, c_p \in \textbf{P} $$
 
 
 This heuristic makes sense because it does not overestimate the cost: in every case we will have to go through at least one of those paths, so we take the maximum of them all as our heuristic because it will be the minimum distance we will go through. \\ \\

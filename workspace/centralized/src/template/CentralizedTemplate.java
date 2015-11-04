@@ -2,18 +2,15 @@ package template;
 
 //the list of imports
 import java.io.File;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 import logist.LogistSettings;
-import logist.Measures;
-import logist.behavior.AuctionBehavior;
-import logist.behavior.CentralizedBehavior;
 import logist.agent.Agent;
+import logist.behavior.CentralizedBehavior;
 import logist.config.Parsers;
-import logist.simulation.Vehicle;
 import logist.plan.Plan;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.task.TaskSet;
@@ -50,7 +47,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         // the setup method cannot last more than timeout_setup milliseconds
         timeout_setup = ls.get(LogistSettings.TimeoutKey.SETUP);
         // the plan method cannot execute more than timeout_plan milliseconds
-        timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
+        timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN); 
         
         this.topology = topology;
         this.distribution = distribution;
@@ -62,19 +59,59 @@ public class CentralizedTemplate implements CentralizedBehavior {
         long time_start = System.currentTimeMillis();
         
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-        Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
+        //Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
+        
+        List<ExtendedTask> allTasks = new LinkedList<ExtendedTask>();
+        
+        for (Task t : tasks) {
+			allTasks.add(new ExtendedTask(t, true));
+			allTasks.add(new ExtendedTask(t, false));
+		}
+        
+        Vehicle[] vArray = (Vehicle[]) vehicles.toArray();
+        ExtendedTask[] tArray = (ExtendedTask[]) allTasks.toArray();
+        
+        Solution initialSolution = selectInitialSolution(vArray, tArray);
+        
+        
+        
 
-        List<Plan> plans = new ArrayList<Plan>();
-        plans.add(planVehicle1);
-        while (plans.size() < vehicles.size()) {
-            plans.add(Plan.EMPTY);
-        }
+//        List<Plan> plans = new ArrayList<Plan>();
+//        plans.add(planVehicle1);
+//        while (plans.size() < vehicles.size()) {
+//            plans.add(Plan.EMPTY);
+//        }
         
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
         
-        return plans;
+        return null;
+    }
+    
+    private Solution selectInitialSolution(Vehicle[] vehicles, ExtendedTask[] tasks) {
+    	
+    	int maxCapacity = 0;
+    	int maxCapacityIdx = -1;
+    	
+    	for(int i = 0; i < vehicles.length; i++) {
+    		if(vehicles[i].capacity() > maxCapacity) {
+    			maxCapacity = vehicles[i].capacity();
+    			maxCapacityIdx = i;
+    		}
+    	}
+    	
+    	Solution s = new Solution(vehicles.length);
+    	
+    	int i = 0;
+    	for(int j = 0; j < tasks.length; j+=2, i++) {
+    		
+    		s.addTask(i % vehicles.length, tasks[j]);
+    		s.addTask(i % vehicles.length, tasks[j+1]);
+    	}
+    	
+    	return s;
+    	
     }
 
     private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {

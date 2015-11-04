@@ -1,11 +1,12 @@
 package template;
 
 //the list of imports
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import logist.LogistSettings;
 
+import logist.LogistSettings;
 import logist.Measures;
 import logist.behavior.AuctionBehavior;
 import logist.behavior.CentralizedBehavior;
@@ -40,7 +41,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         // this code is used to get the timeouts
         LogistSettings ls = null;
         try {
-            ls = Parsers.parseSettings("config\\settings_default.xml");
+            ls = Parsers.parseSettings("config" + File.separator + "settings_default.xml");
         }
         catch (Exception exc) {
             System.out.println("There was a problem loading the configuration file.");
@@ -71,7 +72,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
-        System.out.println("The plan was generated in "+duration+" milliseconds.");
+        System.out.println("The plan was generated in " + duration + " milliseconds.");
         
         return plans;
     }

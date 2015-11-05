@@ -2,8 +2,12 @@ package template;
 
 //the list of imports
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 import logist.LogistSettings;
 import logist.agent.Agent;
@@ -58,8 +62,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
         
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-        //Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
+        
+        final double PROBABILITY = 0.3;
         
         List<ExtendedTask> allTasks = new LinkedList<ExtendedTask>();
         
@@ -74,9 +78,72 @@ public class CentralizedTemplate implements CentralizedBehavior {
         ExtendedTask[] tArray = new ExtendedTask[tasks.size()];
         tArray = allTasks.toArray(tArray);
         
+        Random r = new Random();
         Solution initialSolution = selectInitialSolution(vArray, tArray);
         
         
+        Solution intermediateSolution = initialSolution;
+        int nbIterations = 0;
+        while(nbIterations < 200) {
+        	System.out.println("Iteration " + (nbIterations + 1));
+	    	int vi = -1;
+	    	do {
+	    		vi = r.nextInt(vehicles.size());
+	    	} while(intermediateSolution.getVehicleFirstTask(vi) == null);	    	
+	    	
+	    	Set<Solution> possibleNeighbours = new HashSet<Solution>();
+	    	
+	    	possibleNeighbours.addAll(changeVehicleOperator(intermediateSolution, vArray, vi));
+	    	possibleNeighbours.addAll(changeTaskOrderOperation(intermediateSolution, vi));
+	    	
+	    	Solution ultimateSolution = initialSolution;
+	    	ArrayList<Solution> bestSolutions = new ArrayList<Solution>();
+	    	bestSolutions.add(ultimateSolution);
+	    	double minCost = initialSolution.computeCost(vArray);
+	    	
+	    	boolean strictMin = false;
+	    
+	    	int validSolutions = 0;
+	    	System.out.println(possibleNeighbours.size() + " possibles neighbours.");
+	    	for(Solution s : possibleNeighbours) {
+	    		if(s.isValid(vArray)) {
+	    			validSolutions++;
+	    			double cost = s.computeCost(vArray);
+	    			if(cost < minCost) {
+	    				ultimateSolution = s;
+	    				minCost = cost;
+	    				
+	    				strictMin = true;
+	    				bestSolutions.clear();
+	    			} else if(cost == minCost) {
+	    				
+	    				if(strictMin)
+	    					bestSolutions.add(ultimateSolution);
+	    				
+	    				bestSolutions.add(s);
+	    				strictMin = false;
+	    			}
+	    		}
+	    	}
+	    	
+	    	System.out.println(validSolutions + " valid solutions.");
+	    	
+	    	double randomNumber = r.nextDouble();
+	    	
+	    	if(strictMin) {
+	    		intermediateSolution = ultimateSolution;
+	    	} else {
+	    		int rndIndex = r.nextInt(bestSolutions.size());
+	    		intermediateSolution = bestSolutions.get(rndIndex);
+	    	}
+	    	
+	    	double intermediateCost = intermediateSolution.computeCost(vArray);
+	    	
+	    	System.out.println("Cost [" + intermediateCost + "]");
+	    	nbIterations++;
+        }
+    	
+    	
         
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
@@ -85,7 +152,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         List<Plan> plans = new LinkedList<Plan>();
         
         for (Vehicle v : vehicles) {
-			plans.add(initialSolution.generatePlan(v));
+			plans.add(intermediateSolution.generatePlan(v));
 		}
         
         return plans;
@@ -139,5 +206,49 @@ public class CentralizedTemplate implements CentralizedBehavior {
             current = task.deliveryCity;
         }
         return plan;
+    }
+    
+    /**
+     * -----------------------------------
+     * SLS OPERATORS 
+     * -----------------------------------
+     */
+    
+    private Set<Solution> changeVehicleOperator(Solution oldSolution, Vehicle[] vehicles, int vi) {
+    	
+    	Random r = new Random();
+    	Set<Solution> solutions = new HashSet<Solution>();
+    	int nbVehicles = oldSolution.getNbVehicles();
+    	
+    	for(int vj = 0; vj < nbVehicles; vj++) {
+    		
+    		if(vj != vi) {
+    			ExtendedTask t = oldSolution.getVehicleFirstTask(vj);
+    			if(t.getT().weight <= vehicles[vj].capacity()) {
+    				solutions.add(oldSolution.swapVehicles(vj, vi));
+    			}
+    		}
+    		
+    	}
+    	
+    	return solutions;
+    }
+    
+    private Set<Solution> changeTaskOrderOperation(Solution oldSolution, int vi) {
+    	
+    	Random r = new Random();
+    	Set<Solution> solutions = new HashSet<Solution>();
+    	
+    	int length = oldSolution.getNbTaskForVehicle(vi);
+    	
+    	if(length >= 2) {
+    		for(int i = 0; i < length -1; i++) {
+    			for(int j = i; j < length; j++) {
+    				solutions.add(oldSolution.swapTasks(vi, i, j));
+    			}
+    		}
+    	}
+    	
+    	return solutions;
     }
 }

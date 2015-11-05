@@ -1,0 +1,64 @@
+
+\documentclass[fontsize=12pt]{scrartcl} % A4 paper and 12pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage{spverbatim}
+\usepackage[bottom=6em]{geometry}
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage[babel=true]{csquotes} 
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{graphicx}
+\usepackage{titlepic}
+\usepackage{bbm}
+\usepackage{color}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{listings} %Allows Java code
+\setlength{\headheight}{0pt} % Customize the height of the header
+
+
+%\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+%\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+%\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+\title{	
+ %  \includegraphics[width=4cm]{lia-logo.jpg} % also works with logo.pdf
+\normalfont \normalsize 
+\textsc{Intelligent Agents, EPFL} \\ [20pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Centralized agents \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+\author{Jeremy Gotteland \& Quentin Praz} % Your name
+\date{\normalsize\today} % Today's date or a custom date
+\begin{document}
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	PROBLEMS SECTION
+%----------------------------------------------------------------------------------------
+
+\section*{Encoding the problem}
+We create the class $ExtendedTask$ which is the extension of a basic task provided by \textit{Logist}. This new class is used to differentiate the pickup action and the delivery action. It is characterize by a task and by an action (pickup or delivery). We used these $ExtendedTask$s to be able to carry multiple tasks in the same vehicle.\\
+We also implement the class $Solution$ which represents a possible solution. A solution is characterized by a map between a vehicle and a list of $ExtendedTask$s that we called $tasksList$. We have therefore one $tasksList$ per vehicle.\\
+The notion of time is define by the indices of the task in the $tasksList$.
+
+\section*{Constraints}
+To have a valid solution, we need to satisfy constraints:
+\begin{enumerate}
+\item A specific $ExtendedTask$ can be contained in only one $tasksList$.
+\item Let take the two $ExtendedTask$s coming from the same task (pickup and delivery part), the index of the pickup part has to be strictly smaller that the index of the delivery part.
+\item Let take again the two $ExtendedTask$s coming from the same task, the two $ExtendedTask$ have to be in the same $tasksList$.
+\item All task must be deliver. The sum of the $ExtendedTask$s from all $tasksList$s had to be equal to the number of initial tasks multiplied by 2.
+\item The weights of the carried tasks by a vehicle cannot exceed the capacity of this vehicle. 
+\end{enumerate}
+
+
+\end{document}          

@@ -20,8 +20,12 @@ public class Solution {
 
 	public Solution(int nbVehicles) {
 		super();
+<<<<<<< Updated upstream
 		solution = new HashMap<>();
 		this.nbVehicles = nbVehicles;
+=======
+		solution = new HashMap<Integer, List<ExtendedTask>>();
+>>>>>>> Stashed changes
 		for(int i = 0; i < nbVehicles; i++) {
 			solution.put(i, new ArrayList<ExtendedTask>());
 		}

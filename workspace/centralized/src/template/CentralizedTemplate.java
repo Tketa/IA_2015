@@ -68,25 +68,27 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			allTasks.add(new ExtendedTask(t, false));
 		}
         
-        Vehicle[] vArray = (Vehicle[]) vehicles.toArray();
-        ExtendedTask[] tArray = (ExtendedTask[]) allTasks.toArray();
+        
+        Vehicle[] vArray = new Vehicle[vehicles.size()];
+        vArray = vehicles.toArray(vArray);
+        ExtendedTask[] tArray = new ExtendedTask[tasks.size()];
+        tArray = allTasks.toArray(tArray);
         
         Solution initialSolution = selectInitialSolution(vArray, tArray);
         
         
         
-
-//        List<Plan> plans = new ArrayList<Plan>();
-//        plans.add(planVehicle1);
-//        while (plans.size() < vehicles.size()) {
-//            plans.add(Plan.EMPTY);
-//        }
-        
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
         
-        return null;
+        List<Plan> plans = new LinkedList<Plan>();
+        
+        for (Vehicle v : vehicles) {
+			plans.add(initialSolution.generatePlan(v));
+		}
+        
+        return plans;
     }
     
     private Solution selectInitialSolution(Vehicle[] vehicles, ExtendedTask[] tasks) {

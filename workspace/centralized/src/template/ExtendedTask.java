@@ -8,16 +8,11 @@ public class ExtendedTask {
 	
 	private boolean pickup;
 	
-	private int id;
-	
 	
 	public ExtendedTask(Task t, boolean pickup) {
 		// TODO Auto-generated constructor stub
 		this.t = t;
 		this.pickup = pickup;
-		
-		String sId = t.id + (pickup ? "0" : "1");
-		id = Integer.parseInt(sId);
 	}
 
 
@@ -35,12 +30,6 @@ public class ExtendedTask {
 	public boolean isPickup() {
 		return pickup;
 	}
-	
-	public int id() {
-		
-		return id;
-	}
-	
 	
 	
 }

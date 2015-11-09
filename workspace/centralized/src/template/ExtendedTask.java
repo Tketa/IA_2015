@@ -30,6 +30,17 @@ public class ExtendedTask {
 	public boolean isPickup() {
 		return pickup;
 	}
+
+
+	@Override
+	public String toString() {
+		if(pickup){
+			return "Pickup" + t.toString();
+		}
+		else{
+			return "Delivery" + t.toString();
+		}
+	}
 	
 	
 }

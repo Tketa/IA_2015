@@ -3,7 +3,10 @@ package template;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import logist.plan.Plan;
@@ -13,23 +16,35 @@ import logist.topology.Topology.City;
 public class Solution implements Cloneable{
 	
 	/* maps a vehicule id to a list of task ordered by order of action */
-	private HashMap<Integer, List<ExtendedTask>> solution;
+	private HashMap<Integer, LinkedList<ExtendedTask>> solution;
 	private int nbVehicles;
 
 	public Solution(int nbVehicles) {
 		this.nbVehicles = nbVehicles;
-		solution = new HashMap<Integer, List<ExtendedTask>>();
+		solution = new HashMap<Integer, LinkedList<ExtendedTask>>();
 		for(int i = 0; i < nbVehicles; i++) {
-			solution.put(i, new ArrayList<ExtendedTask>());
+			solution.put(i, new LinkedList<ExtendedTask>());
 		}
 	}
 	
 	public void addTask(int vehicleId, ExtendedTask t) {
-		solution.get(vehicleId).add(t);
+		ExtendedTask pickup = new ExtendedTask(t.getT(), true);
+		ExtendedTask delivery = new ExtendedTask(t.getT(), false);
+		
+		this.solution.get(vehicleId).addFirst(delivery);
+		this.solution.get(vehicleId).addFirst(pickup);
 	}
 	
 	public void removTask(int vehicleId, ExtendedTask t) {
-		solution.get(vehicleId).remove(t);
+		Iterator<ExtendedTask> it = this.solution.get(vehicleId).iterator();
+		int taskId = t.getT().id;
+		
+		while (it.hasNext()) {
+		    ExtendedTask iTask = it.next();
+		    if (iTask.getT().id == taskId) {
+		        it.remove();
+		    }
+		}
 	}
 	
 	public boolean isValid(Vehicle[] vehicles) {
@@ -46,6 +61,7 @@ public class Solution implements Cloneable{
 				if(t.isPickup()) {
 					
 					if(taskIdPickup.contains(t.getT().id)){
+						//System.err.println("Already encountered PICKUP taks with id " + t.getT().id);
 						return false;
 					}
 					
@@ -61,6 +77,7 @@ public class Solution implements Cloneable{
 					
 					if(taskIdDelivery.contains(t.getT().id)
 							|| !vehicleTasks.contains(t.getT().id)){
+						//System.err.println("Already encountered DELIVERY or NOPICKUP for task with id " + t.getT().id);
 						return false;
 					}
 					
@@ -95,37 +112,35 @@ public class Solution implements Cloneable{
 	
 	public Solution swapVehicles(int v1, int v2) {
 		
-		ExtendedTask tp = getVehicleFirstTask(v1);
-		ExtendedTask td = new ExtendedTask(tp.getT(), false);
+		ExtendedTask tv1 = getVehicleFirstTask(v1);
+		ExtendedTask tv2 = getVehicleFirstTask(v2);
 		
-		this.addTask(v2, tp);
-		this.addTask(v2, td);
+		this.removTask(v1, tv1);
+		this.removTask(v2, tv2);
 		
-		this.removTask(v1, tp);
-		this.removTask(v1, td);
+		this.addTask(v1, tv1);
+		this.addTask(v2, tv2);
 		
 		return this;
 	}
 	
 	public Solution swapTasks(int v, int t1, int t2) {
-		Solution newS = new Solution(nbVehicles);
-		
-
-		
-		for(int i = 0; i < nbVehicles; i++) {
+		Solution newS = this.clone();
+					
+		LinkedList<ExtendedTask> currentTasks = this.solution.get(v);
+		LinkedList<ExtendedTask> newTasks = new LinkedList<ExtendedTask>();
 			
-			List<ExtendedTask> currentTasks = this.solution.get(i);
-			List<ExtendedTask> newTasks = new ArrayList<ExtendedTask>(currentTasks);
-			
-			if(i == v) {
-				newTasks.add(t1, currentTasks.get(t2));
-				newTasks.add(t2, currentTasks.get(t1));
-				
-				newS.solution.put(i, newTasks);
-			} else {
-				newS.solution.put(i, newTasks);
-			}
+		for(int j = 0; j < currentTasks.size(); j++) {
+				if(j == t1) {
+					newTasks.add(currentTasks.get(t2));
+				} else if (j == t2) {
+					newTasks.add(currentTasks.get(t1));
+				} else {
+					newTasks.add(currentTasks.get(j));
+				}
 		}
+			
+		newS.solution.put(v, newTasks);
 		
 		return newS;
 	}
@@ -193,7 +208,18 @@ public class Solution implements Cloneable{
 	}
 
 	public void setSolution(HashMap<Integer, List<ExtendedTask>> solution) {
-		this.solution = solution;
+		
+		this.solution.clear();
+		
+		for(Map.Entry<Integer, List<ExtendedTask>> entry : solution.entrySet()) {
+			LinkedList<ExtendedTask> tasks = new LinkedList<ExtendedTask>();
+			
+			for (ExtendedTask extendedTask : entry.getValue()) {
+				tasks.add(extendedTask);
+			}
+			
+			this.solution.put(entry.getKey(), tasks);
+		}
 	}
 	
 }

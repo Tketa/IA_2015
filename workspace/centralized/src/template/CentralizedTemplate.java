@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import javafx.util.Duration;
 import logist.LogistSettings;
 import logist.agent.Agent;
 import logist.behavior.CentralizedBehavior;
@@ -52,7 +53,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         // the setup method cannot last more than timeout_setup milliseconds
         timeout_setup = ls.get(LogistSettings.TimeoutKey.SETUP);
         // the plan method cannot execute more than timeout_plan milliseconds
-        timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN); 
+        timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
         
         this.topology = topology;
         this.distribution = distribution;
@@ -88,7 +89,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         intermediateSolution.print();
         
         int nbIterations = 0;
-        while(nbIterations < 10000) {
+        while(nbIterations < 50000) {
         	System.out.println("Iteration " + (nbIterations + 1));
 	    	int vi = -1;
 	    	do {
@@ -101,15 +102,15 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	//intermediateSolution.print();
 	    	possibleNeighbours.addAll(changeTaskOrderOperation(intermediateSolution, vi));
 	    	
-	    	Solution ultimateSolution = initialSolution;
+	    	Solution ultimateSolution = null;
 	    	ArrayList<Solution> bestSolutions = new ArrayList<Solution>();
-	    	bestSolutions.add(ultimateSolution);
+	    	//bestSolutions.add(ultimateSolution);
 	    	double minCost = initialSolution.computeCost(vArray);
 	    	
 	    	boolean strictMin = false;
 	    
 	    	int validSolutions = 0;
-	    	System.out.println(possibleNeighbours.size() + " possibles neighbours.");
+	    	//System.out.println(possibleNeighbours.size() + " possibles neighbours.");
 	    	for(Solution s : possibleNeighbours) {
 	    		if(s.isValid(vArray)) {
 	    			validSolutions++;
@@ -131,16 +132,19 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    		}
 	    	}
 	    	
-	    	System.out.println(validSolutions + " valid solutions.");
+	    	//System.out.println(validSolutions + " valid solutions.");
 	    	
 	    	double randomNumber = r.nextDouble();
-	    	//Faut uiliser ce randomNumber pour faire le truc avec p et 1-p
 	    	
-	    	if(strictMin) {
-	    		intermediateSolution = ultimateSolution;
-	    	} else {
-	    		int rndIndex = r.nextInt(bestSolutions.size());
-	    		intermediateSolution = bestSolutions.get(rndIndex);
+	    	// Il faut utiliser ce randomNumber pour faire le truc avec p et 1-p.
+	    	
+	    	if(randomNumber < PROBABILITY) {
+		    	if(strictMin) {
+		    		intermediateSolution = ultimateSolution;
+		    	} else {
+		    		int rndIndex = r.nextInt(bestSolutions.size());
+		    		intermediateSolution = bestSolutions.get(rndIndex);
+		    	}
 	    	}
 	    	
 	    	double intermediateCost = intermediateSolution.computeCost(vArray);
@@ -226,9 +230,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	Random r = new Random();
     	Set<Solution> solutions = new HashSet<Solution>();
     	int nbVehicles = oldSolution.getNbVehicles();
-    	    	    	
-    	System.err.println("VEHICULE NUMBER " + vi);
-    	
+    	    	        	
     	ExtendedTask t = oldSolution.getVehicleFirstTask(vi);
     	//oldSolution.print();
     	for(int vj = 0; vj < nbVehicles; vj++) {

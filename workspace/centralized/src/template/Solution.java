@@ -3,36 +3,48 @@ package template;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import logist.plan.Plan;
 import logist.simulation.Vehicle;
 import logist.topology.Topology.City;
 
-public class Solution {
+public class Solution implements Cloneable{
 	
 	/* maps a vehicule id to a list of task ordered by order of action */
-	private HashMap<Integer, List<ExtendedTask>> solution;
-	
+	private HashMap<Integer, LinkedList<ExtendedTask>> solution;
 	private int nbVehicles;
 
 	public Solution(int nbVehicles) {
-		super();
-<<<<<<< Updated upstream
-		solution = new HashMap<>();
 		this.nbVehicles = nbVehicles;
-=======
-		solution = new HashMap<Integer, List<ExtendedTask>>();
->>>>>>> Stashed changes
+		solution = new HashMap<Integer, LinkedList<ExtendedTask>>();
 		for(int i = 0; i < nbVehicles; i++) {
-			solution.put(i, new ArrayList<ExtendedTask>());
+			solution.put(i, new LinkedList<ExtendedTask>());
 		}
 	}
 	
 	public void addTask(int vehicleId, ExtendedTask t) {
-		solution.get(vehicleId).add(t);
+		ExtendedTask pickup = new ExtendedTask(t.getT(), true);
+		ExtendedTask delivery = new ExtendedTask(t.getT(), false);
+		
+		this.solution.get(vehicleId).addFirst(delivery);
+		this.solution.get(vehicleId).addFirst(pickup);
+	}
+	
+	public void removTask(int vehicleId, ExtendedTask t) {
+		Iterator<ExtendedTask> it = this.solution.get(vehicleId).iterator();
+		int taskId = t.getT().id;
+		
+		while (it.hasNext()) {
+		    ExtendedTask iTask = it.next();
+		    if (iTask.getT().id == taskId) {
+		        it.remove();
+		    }
+		}
 	}
 	
 	public boolean isValid(Vehicle[] vehicles) {
@@ -48,8 +60,10 @@ public class Solution {
 			for (ExtendedTask t : tasks) {
 				if(t.isPickup()) {
 					
-					if(taskIdPickup.contains(t.getT().id))
+					if(taskIdPickup.contains(t.getT().id)){
+						//System.err.println("Already encountered PICKUP taks with id " + t.getT().id);
 						return false;
+					}
 					
 					taskIdPickup.add(t.getT().id);
 					vehicleTasks.add(t.getT().id);
@@ -61,7 +75,9 @@ public class Solution {
 					}
 				} else {
 					
-					if(taskIdDelivery.contains(t.getT().id)) {
+					if(taskIdDelivery.contains(t.getT().id)
+							|| !vehicleTasks.contains(t.getT().id)){
+						//System.err.println("Already encountered DELIVERY or NOPICKUP for task with id " + t.getT().id);
 						return false;
 					}
 					
@@ -71,9 +87,6 @@ public class Solution {
 				}
 			}
 		}
-		
-
-		
 		return true;
 	}
 	
@@ -98,43 +111,36 @@ public class Solution {
 	}
 	
 	public Solution swapVehicles(int v1, int v2) {
-		Solution newS = new Solution(nbVehicles);
 		
+		ExtendedTask tv1 = getVehicleFirstTask(v1);
+		ExtendedTask tv2 = getVehicleFirstTask(v2);
 		
-		for(int i = 0; i < nbVehicles; i++) {
-			
-			List<ExtendedTask> tasks = new ArrayList(solution.get(i));
-			
-			if(i == v1)
-				tasks.add(0, this.solution.get(v2).get(0));
-			else if(i == v2)
-				tasks.add(0, this.solution.get(v1).get(0));
-			
-			newS.solution.put(i, tasks);
-		}
+		this.removTask(v1, tv1);
+		this.removTask(v2, tv2);
 		
-		return newS;
+		this.addTask(v1, tv1);
+		this.addTask(v2, tv2);
+		
+		return this;
 	}
 	
 	public Solution swapTasks(int v, int t1, int t2) {
-		Solution newS = new Solution(nbVehicles);
-		
-
-		
-		for(int i = 0; i < nbVehicles; i++) {
+		Solution newS = this.clone();
+					
+		LinkedList<ExtendedTask> currentTasks = this.solution.get(v);
+		LinkedList<ExtendedTask> newTasks = new LinkedList<ExtendedTask>();
 			
-			List<ExtendedTask> currentTasks = this.solution.get(i);
-			List<ExtendedTask> newTasks = new ArrayList(currentTasks);
-			
-			if(i == v) {
-				newTasks.add(t1, currentTasks.get(t2));
-				newTasks.add(t2, currentTasks.get(t1));
-				
-				newS.solution.put(i, newTasks);
-			} else {
-				newS.solution.put(i, newTasks);
-			}
+		for(int j = 0; j < currentTasks.size(); j++) {
+				if(j == t1) {
+					newTasks.add(currentTasks.get(t2));
+				} else if (j == t2) {
+					newTasks.add(currentTasks.get(t1));
+				} else {
+					newTasks.add(currentTasks.get(j));
+				}
 		}
+			
+		newS.solution.put(v, newTasks);
 		
 		return newS;
 	}
@@ -186,5 +192,34 @@ public class Solution {
 		return p;
 	}
 	
+	public void print() {
+		for (Integer name: solution.keySet()){
+            String key =name.toString();
+            String value = solution.get(name).toString();  
+            System.out.println("Vehicle "+key + " " + value);  
+		} 
+	}
+
+	@Override
+	protected Solution clone(){
+	    Solution s = new Solution(nbVehicles);
+	    s.setSolution(new HashMap<Integer, List<ExtendedTask>>(this.solution));
+	    return s;
+	}
+
+	public void setSolution(HashMap<Integer, List<ExtendedTask>> solution) {
+		
+		this.solution.clear();
+		
+		for(Map.Entry<Integer, List<ExtendedTask>> entry : solution.entrySet()) {
+			LinkedList<ExtendedTask> tasks = new LinkedList<ExtendedTask>();
+			
+			for (ExtendedTask extendedTask : entry.getValue()) {
+				tasks.add(extendedTask);
+			}
+			
+			this.solution.put(entry.getKey(), tasks);
+		}
+	}
 	
 }

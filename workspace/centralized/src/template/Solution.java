@@ -28,15 +28,22 @@ public class Solution implements Cloneable{
 	}
 	
 	public void addTask(int vehicleId, ExtendedTask t) {
+		if(t == null) 
+			return;
+		
 		ExtendedTask pickup = new ExtendedTask(t.getT(), true);
 		ExtendedTask delivery = new ExtendedTask(t.getT(), false);
 		
-		this.solution.get(vehicleId).addFirst(delivery);
-		this.solution.get(vehicleId).addFirst(pickup);
+		this.solution.get(vehicleId).addLast(pickup);
+		this.solution.get(vehicleId).addLast(delivery);
+
 	}
 	
 	public void removTask(int vehicleId, ExtendedTask t) {
 		Iterator<ExtendedTask> it = this.solution.get(vehicleId).iterator();
+		if(t == null) 
+			return;
+		
 		int taskId = t.getT().id;
 		
 		while (it.hasNext()) {
@@ -47,15 +54,19 @@ public class Solution implements Cloneable{
 		}
 	}
 	
-	public boolean isValid(Vehicle[] vehicles) {
+	public boolean isValid(Vehicle[] vehicles, int nbTasks) {
 		
 		List<Integer> taskIdPickup = new ArrayList<Integer>();
 		List<Integer> taskIdDelivery = new ArrayList<Integer>();
+		
+		int nbExtended = 0;
 		
 		for(int i = 0; i < nbVehicles; i++) {
 			int weight = 0;
 			Set<Integer> vehicleTasks = new HashSet<Integer>();
 			List<ExtendedTask> tasks = solution.get(i);
+			
+			nbExtended += tasks.size();
 			
 			for (ExtendedTask t : tasks) {
 				if(t.isPickup()) {
@@ -87,6 +98,12 @@ public class Solution implements Cloneable{
 				}
 			}
 		}
+		
+		if(nbExtended / 2 != nbTasks) {
+			System.err.println("Not enough tasks");
+			return false;
+		}
+		
 		return true;
 	}
 	

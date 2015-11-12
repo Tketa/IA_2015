@@ -98,5 +98,32 @@ This graph contains all of our results. We ran the algorithm for 10, 20, 30 and 
 In the case of the initial solution where all tasks are put in one vehicle, they always stay in that same vehicles so we do not need to differentiate. \\\\
 However it is important in the case where the initial solution tries to spread tasks in every vehicle.
 
+\begin{figure}[h!]
+
+\includegraphics[width=\linewidth]{perf-graph.jpg}
+\caption{Performance in terms of cost for each combinations of parameters/algorithm}
+
+\end{figure}
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Number of tasks & All-in-one & 1 Vehicle & 2 Vehicles & 3 Vehicles & 4 Vehicles & Naive\\ 
+\hline
+10 & 9549 & 9196 & 10222 & 18890 & 20136 & 24029\\ 
+\hline
+20 & 12487 & 13855 & 15761 & 23732 & 31876.5 & 44214\\ 
+\hline
+30 & 17600 & 15241 & 22227 & 28739 & 29847 & 68731\\ 
+\hline
+40 & 27756 & 22027 & 29744 & 34488 & 40376.5 & 98896\\ 
+\hline
+\hline\end{tabular}
+\label{table:table}
+\caption{\small{Values of the barplot}} 
+\end{table}
+
+
 
 \end{document}          

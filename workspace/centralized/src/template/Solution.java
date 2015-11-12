@@ -11,6 +11,7 @@ import java.util.Set;
 
 import logist.plan.Plan;
 import logist.simulation.Vehicle;
+import logist.task.Task;
 import logist.topology.Topology.City;
 
 public class Solution implements Cloneable{
@@ -27,24 +28,32 @@ public class Solution implements Cloneable{
 		}
 	}
 	
-	public void addTask(int vehicleId, ExtendedTask t) {
+	/**
+	 * Adds the given task to the vehicule.
+	 * 
+	 * It actually adds 'Pickup(t)' and 'Delivery(t)' as the two LAST actions for this vehicule
+	 * 
+	 * @param vehicleId
+	 * @param t
+	 */
+	public void addTask(int vehicleId, Task t) {
 		if(t == null) 
 			return;
 		
-		ExtendedTask pickup = new ExtendedTask(t.getT(), true);
-		ExtendedTask delivery = new ExtendedTask(t.getT(), false);
+		ExtendedTask pickup = new ExtendedTask(t, true);
+		ExtendedTask delivery = new ExtendedTask(t, false);
 		
 		this.solution.get(vehicleId).addLast(pickup);
 		this.solution.get(vehicleId).addLast(delivery);
 
 	}
 	
-	public void removTask(int vehicleId, ExtendedTask t) {
+	public void removTask(int vehicleId, Task t) {
 		Iterator<ExtendedTask> it = this.solution.get(vehicleId).iterator();
 		if(t == null) 
 			return;
 		
-		int taskId = t.getT().id;
+		int taskId = t.id;
 		
 		while (it.hasNext()) {
 		    ExtendedTask iTask = it.next();
@@ -132,11 +141,15 @@ public class Solution implements Cloneable{
 		ExtendedTask tv1 = getVehicleFirstTask(v1);
 		ExtendedTask tv2 = getVehicleFirstTask(v2);
 		
-		this.removTask(v1, tv1);
-		this.removTask(v2, tv2);
+		if(tv1 != null) {
+			this.removTask(v1, tv1.getT());
+			this.addTask(v2, tv1.getT());
+		}
 		
-		this.addTask(v1, tv1);
-		this.addTask(v2, tv2);
+		if(tv2 != null) {
+			this.removTask(v2, tv2.getT());
+			this.addTask(v1, tv2.getT());
+		}
 		
 		return this;
 	}

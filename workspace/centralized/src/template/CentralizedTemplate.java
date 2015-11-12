@@ -63,30 +63,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
         long time_start = System.currentTimeMillis();
         
         
-        final double PROBABILITY = 0.5;
-        
-        List<ExtendedTask> allTasks = new LinkedList<ExtendedTask>();
-        
-        for (Task t : tasks) {
-			allTasks.add(new ExtendedTask(t, true));
-			allTasks.add(new ExtendedTask(t, false));
-		}
+        final double PROBABILITY = 0.3;
         
         int nbTasks = tasks.size();
         
-        // COMPUTE COST FOR NAIVE SOLUTION AS A BASELINE
-        
-        Solution naiveSolution = naiveSolution(vehicles.get(0), tasks);
-        
-        
         Vehicle[] vArray = new Vehicle[vehicles.size()];
         vArray = vehicles.toArray(vArray);
-        ExtendedTask[] tArray = new ExtendedTask[tasks.size()];
-        tArray = allTasks.toArray(tArray);
-        
+                
         Random r = new Random();
-        Solution initialSolution = selectInitialSolution(vArray, tArray);
-       // Solution initialSolution = initialSolutionClassic(vArray, tArray);
+        Solution initialSolution = selectInitialSolution(vArray, tasks);
+        //Solution initialSolution = initialSolutionClassic(vArray, tasks);
         
         Solution intermediateSolution = initialSolution;
         
@@ -103,10 +89,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	Set<Solution> possibleNeighbours = new HashSet<Solution>();
 	    	
 	    	possibleNeighbours.addAll(changeVehicleOperator(intermediateSolution, vArray, vi));
-	    	//intermediateSolution.print();
+
 	    	possibleNeighbours.addAll(changeTaskOrderOperation(intermediateSolution, vi));
 	    	
-	    	//possibleNeighbours.addAll( taskOthersTaskOperator(intermediateSolution, vArray, vi) );
 	    	
 	    	Solution ultimateSolution = null;
 	    	ArrayList<Solution> bestSolutions = new ArrayList<Solution>();
@@ -115,12 +100,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	double maxImprovement = Double.MAX_VALUE;
 	    	
 	    	boolean strictMin = false;
-	    
-	    	int validSolutions = 0;
-	    	//System.out.println(possibleNeighbours.size() + " possibles neighbours.");
+	    	
+	    	
 	    	for(Solution s : possibleNeighbours) {
 	    		if(s.isValid(vArray, nbTasks)) {
-	    			validSolutions++;
 	    			double cost = s.computeCost(vArray);
 	    			
 	    			if(cost < maxImprovement) {
@@ -140,12 +123,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    		}
 	    	}
 	    	
-	    	//System.out.println(validSolutions + " valid solutions.");
-	    	
 	    	double randomNumber = r.nextDouble();
-	    	
-	    	// Il faut utiliser ce randomNumber pour faire le truc avec p et 1-p.
-	    	
+	    
 	    	if(randomNumber < PROBABILITY) {
 	    		
 		    	if(strictMin) {
@@ -162,15 +141,20 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	nbIterations++;
         }
     	
+        // Print the final solution.
         intermediateSolution.print();
         
-        Vehicle[] oneVehicle = new Vehicle[1];
-        oneVehicle[0] = vArray[0];
-        System.out.println("Naive solution's cost is " + naiveSolution.computeCost(oneVehicle));
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
         
+        // COMPUTE COST FOR NAIVE SOLUTION AS A BASELINE
+        Solution naiveSolution = naiveSolution(vehicles.get(0), tasks);
+        Vehicle[] oneVehicle = new Vehicle[1];
+        oneVehicle[0] = vArray[0];
+        System.out.println("Naive solution's cost is " + naiveSolution.computeCost(oneVehicle));
+        
+        // Generate plans for all vehicules, and then return
         List<Plan> plans = new LinkedList<Plan>();
         
         for (Vehicle v : vehicles) {
@@ -180,7 +164,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         return plans;
     }
     
-    private Solution selectInitialSolution(Vehicle[] vehicles, ExtendedTask[] tasks) {
+    private Solution selectInitialSolution(Vehicle[] vehicles, TaskSet tasks) {
     	
     	int maxCapacity = 0;
     	int maxCapacityIdx = -1;
@@ -195,21 +179,21 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	Solution s = new Solution(vehicles.length);
     	
     	int i = 0;
-    	for(int j = 0; j < tasks.length; j+=2, i++) {
+    	for(Task t : tasks) {
     		
-    		s.addTask(i % vehicles.length, tasks[j]);
-    		//s.addTask(i % vehicles.length, tasks[j+1]);
+    		s.addTask(i % vehicles.length, t);
+    		i++;
     	}
     	return s;
     	
     }
     
-    private Solution initialSolutionClassic(Vehicle[] vehicles, ExtendedTask[] tasks) {
+    private Solution initialSolutionClassic(Vehicle[] vehicles, TaskSet tasks) {
     	
     	Solution s = new Solution(vehicles.length);
     	
-    	for(int j = 0; j < tasks.length; j+=2) {
-    		s.addTask(vehicles[0].id(), tasks[j]);
+    	for(Task t : tasks) {
+    		s.addTask(vehicles[0].id(), t);
     	}
     	
     	return s;
@@ -220,9 +204,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	int vehicleId = vehicle.id();
     	
     	for(Task t : tasks) {
-    		ExtendedTask pickup = new ExtendedTask(t, true);
-    		ExtendedTask delivery = new ExtendedTask(t, false);
-    		s.addTask(vehicleId, pickup);
+    		s.addTask(vehicleId, t);
     		//s.addTask(vehicleId, delivery);
     	}
     	
@@ -267,23 +249,24 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	int nbVehicles = oldSolution.getNbVehicles();
     	    	        	
     	ExtendedTask t = oldSolution.getVehicleFirstTask(vi);
-    	//oldSolution.print();
+
     	for(int vj = 0; vj < nbVehicles; vj++) {
     		if(vi != vj) {
     			Solution tmpSolution = oldSolution.clone();
     				
-    			Solution toPrint = tmpSolution.swapVehicles(vi, vj);
-    			solutions.add(toPrint);
-    			//System.out.println(toPrint.isValid(vehicles));
     			
+    			solutions.add(tmpSolution.swapVehicles(vi, vj));    			
     		}
     	}
 
-    	//Je comprend pas comment c'est possible que oldSolution change alors que je fais un clone
     	return solutions;
     }
     
-    private Set<Solution> taskOthersTaskOperator(Solution oldSolution, Vehicle[] vehicles, int vi) {
+    /**
+     * This method is another operator that takes all tasks from a vehicule and assigns them to another vehicle.
+     * In the end we did not use it because we thought it was no 'local' enough.
+     */
+    private Set<Solution> takeOthersTask(Solution oldSolution, Vehicle[] vehicles, int vi) {
     	
     	Set<Solution> solutions = new HashSet<Solution>();
     	int nbVehicles = oldSolution.getNbVehicles();
@@ -295,10 +278,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
     			Solution tmpSolution = oldSolution.clone();
 
     			do {
-    			tmpSolution.removTask(vj, t);
-    			tmpSolution.addTask(vi, t);
+    				
+    				if( t != null) {
+		    			tmpSolution.removTask(vj, t.getT());
+		    			tmpSolution.addTask(vi, t.getT());
+    				}
     			
-    			t = tmpSolution.getVehicleFirstTask(vj);
+    				t = tmpSolution.getVehicleFirstTask(vj);
     			
     			} while(t != null);
     			

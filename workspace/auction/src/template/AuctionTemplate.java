@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import logist.Measures;
 import logist.agent.Agent;
 import logist.behavior.AuctionBehavior;
 import logist.plan.Plan;
@@ -32,6 +31,8 @@ public class AuctionTemplate implements AuctionBehavior {
 	private Random random;
 	private Vehicle vehicle;
 	private City currentCity;
+	
+	private Solution currentSolution;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution,
@@ -45,49 +46,70 @@ public class AuctionTemplate implements AuctionBehavior {
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
+		
+		this.currentSolution = new Solution(agent.vehicles().size());
 	}
 
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
+		
+		Vehicle[] vArray = new Vehicle[agent.vehicles().size()];
+		vArray = agent.vehicles().toArray(vArray);
+		
 		if (winner == agent.id()) {
-			currentCity = previous.deliveryCity;
+			System.out.println("You won the auction!");
+			currentSolution = currentSolution.getOptimalSolution(previous, vArray);
+			currentSolution.print();
 		}
 	}
 	
 	@Override
 	public Long askPrice(Task task) {
+		System.out.println("Ask price");
 
 		if (vehicle.capacity() < task.weight)
 			return null;
 
-		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
-		long distanceSum = distanceTask
-				+ currentCity.distanceUnitsTo(task.pickupCity);
-		double marginalCost = Measures.unitsToKM(distanceSum
-				* vehicle.costPerKm());
+		Vehicle[] vArray = new Vehicle[agent.vehicles().size()];
+		vArray = agent.vehicles().toArray(vArray);
+		
+		double currentCost = currentSolution.computeCost(vArray);
+		Solution newSol = currentSolution.getOptimalSolution(task, vArray);
+		double newCost = newSol.computeCost(vArray);
 
-		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
-		double bid = ratio * marginalCost;
+		double marginalCost = newCost - currentCost;
 
-		return (long) Math.round(bid);
+		//double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
+		//double bid = ratio * marginalCost;
+		
+		
+		
+		return (long) Math.ceil(marginalCost);
 	}
 
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 		
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-
-		
-		Vehicle[] vArray = new Vehicle[vehicles.size()];
-		vArray = vehicles.toArray(vArray);
-		
-		Plan planVehicle1 = naivePlan(vehicle, tasks);
-
+//		System.out.println("Generate plan");
+//		Vehicle[] vArray = new Vehicle[vehicles.size()];
+//		vArray = vehicles.toArray(vArray);
+//		
+//		Plan planVehicle1 = naivePlan(vehicle, tasks);
+//
+//		List<Plan> plans = new ArrayList<Plan>();
+//		plans.add(planVehicle1);
+//		while (plans.size() < vehicles.size())
+//			plans.add(Plan.EMPTY);
+//
+//		return plans;
 		List<Plan> plans = new ArrayList<Plan>();
-		plans.add(planVehicle1);
-		while (plans.size() < vehicles.size())
-			plans.add(Plan.EMPTY);
-
+		for(Vehicle v : vehicles) {
+			Plan p = currentSolution.generatePlan(v);
+			System.out.println(p);
+			plans.add(p);
+		}
+		
 		return plans;
 	}
 

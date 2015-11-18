@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<agents>
+	<!-- An auto-generated list of agents and their behavior classes -->
+	<!--  - jar directory : agents/ -->
+	<!--  - generated on  : Wed Nov 18 14:36:55 CET 2015 -->
+	<agent name="YourName">
+		<set class-path="bin"/>
+		<set class-name="template.AuctionTemplate"/>
+	</agent>
+	<agent name="naive">
+		<set class-path="agents/naive.jar"/>
+		<set class-name="template.AuctionTemplate"/>
+	</agent>
+	<agent name="naive2">
+		<set class-path="agents/naive.jar"/>
+		<set class-name="logist.behavior.AuctionBehavior"/>
+	</agent>
+</agents>

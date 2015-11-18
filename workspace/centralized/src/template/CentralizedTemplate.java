@@ -71,8 +71,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
         vArray = vehicles.toArray(vArray);
                 
         Random r = new Random();
-        Solution initialSolution = selectInitialSolution(vArray, tasks);
-        //Solution initialSolution = initialSolutionClassic(vArray, tasks);
+        //Solution initialSolution = selectInitialSolution(vArray, tasks);
+        Solution initialSolution = initialSolutionClassic(vArray, tasks);
         
         Solution intermediateSolution = initialSolution;
         

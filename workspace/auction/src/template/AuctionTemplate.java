@@ -21,6 +21,8 @@ import logist.topology.Topology.City;
  * handles them sequentially.
  * 
  */
+
+
 @SuppressWarnings("unused")
 public class AuctionTemplate implements AuctionBehavior {
 
@@ -75,6 +77,10 @@ public class AuctionTemplate implements AuctionBehavior {
 		
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
 
+		
+		Vehicle[] vArray = new Vehicle[vehicles.size()];
+		vArray = vehicles.toArray(vArray);
+		
 		Plan planVehicle1 = naivePlan(vehicle, tasks);
 
 		List<Plan> plans = new ArrayList<Plan>();

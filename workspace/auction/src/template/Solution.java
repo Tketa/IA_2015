@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -165,7 +166,7 @@ public class Solution implements Cloneable{
 	    return s;
 	}
 	
-	public Solution getOptimalSolution(Task t, Vehicle[] vehicles) {
+	public Solution getOptimalSolution(Task t, Vehicle[] vehicles, long timeout) {
 		
 		ExtendedTask p = new ExtendedTask(t, true);
 		ExtendedTask d = new ExtendedTask(t, false);
@@ -200,33 +201,43 @@ public class Solution implements Cloneable{
 		return optimalSolution;
 	}
 	
-	public double addTaskOptimally(Task t, Vehicle[] vehicles) {
+	public Solution swapVehicles(int v1, int v2) {
 		
-		ExtendedTask p = new ExtendedTask(t, true);
-		ExtendedTask d = new ExtendedTask(t, false);
+		ExtendedTask tv1 = getVehicleFirstTask(v1);
+		ExtendedTask tv2 = getVehicleFirstTask(v2);
 		
-		List<Double> newCosts = new LinkedList<Double>();
-		
-		for(int i = 0; i < vehicles.length; i++) {
-			Solution s = new Solution(vehicles.length);
-			ArrayList<ExtendedTask> tasks = new ArrayList<ExtendedTask>(solution.get(i));
-
-			for(int j = 0; j < tasks.size() - 1; j++) {
-				for(int k = j + 1; k < tasks.size(); k++) {
-					HashMap<Integer, ArrayList<ExtendedTask>> tmpSol = new HashMap(solution);
-					ArrayList<ExtendedTask> tmpTasks = new ArrayList<ExtendedTask>(tasks); 
-					tmpTasks.add(j, p);
-					tmpTasks.add(k , d);
-					tmpSol.put(i, tmpTasks);
-					s.setSolution(tmpSol);
-					
-					newCosts.add(s.computeCost(vehicles));
-				}
-			}
-			
+		if(tv1 != null) {
+			this.removeTask(v1, tv1.getT());
+			this.addTask(v2, tv1.getT());
 		}
 		
-		return Collections.max(newCosts);
+		if(tv2 != null) {
+			this.removeTask(v2, tv2.getT());
+			this.addTask(v1, tv2.getT());
+		}
+		
+		return this;
+	}
+	
+	public Solution swapTasks(int v, int t1, int t2) {
+		Solution newS = this.clone();
+					
+		List<ExtendedTask> currentTasks = this.solution.get(v);
+		ArrayList<ExtendedTask> newTasks = new ArrayList<ExtendedTask>();
+			
+		for(int j = 0; j < currentTasks.size(); j++) {
+				if(j == t1) {
+					newTasks.add(currentTasks.get(t2));
+				} else if (j == t2) {
+					newTasks.add(currentTasks.get(t1));
+				} else {
+					newTasks.add(currentTasks.get(j));
+				}
+		}
+			
+		newS.solution.put(v, newTasks);
+		
+		return newS;
 	}
 
 	public void setSolution(HashMap<Integer, ArrayList<ExtendedTask>> tmpSol) {
@@ -241,6 +252,29 @@ public class Solution implements Cloneable{
 			}
 			
 			this.solution.put(entry.getKey(), tasks);
+		}
+	}
+
+	public void addTask(int vehicleId, Task t) {
+		ExtendedTask p = new ExtendedTask(t, true);
+		ExtendedTask d = new ExtendedTask(t, false);
+		
+		this.solution.get(vehicleId).add(p);
+		this.solution.get(vehicleId).add(d);
+	}
+	
+	public void removeTask(int vehicleId, Task t) {
+		Iterator<ExtendedTask> it = this.solution.get(vehicleId).iterator();
+		if(t == null) 
+			return;
+		
+		int taskId = t.id;
+		
+		while (it.hasNext()) {
+		    ExtendedTask iTask = it.next();
+		    if (iTask.getT().id == taskId) {
+		        it.remove();
+		    }
 		}
 	}
 	

@@ -20,7 +20,7 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 
 
-public class AuctionTemplate implements AuctionBehavior {
+public class AuctionHollywoodAgent implements AuctionBehavior {
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -43,6 +43,9 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.agent = agent;
 		this.vehicles = agent.vehicles();
 		this.currentTasks = new ArrayList<Task>();
+
+		long seed = -9019554669489983951L * vehicles.get(0).getCurrentCity().hashCode() * agent.id();
+		this.random = new Random(seed);
 
 		this.timeout_bid = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.BID);
 	}

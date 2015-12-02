@@ -1,0 +1,56 @@
+
+\documentclass[fontsize=12pt]{scrartcl} % A4 paper and 12pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage{spverbatim}
+\usepackage[bottom=6em]{geometry}
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage[babel=true]{csquotes} 
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{graphicx}
+\usepackage{titlepic} 
+\usepackage{bbm}
+\usepackage{color}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{listings} %Allows Java code
+\setlength{\headheight}{0pt} % Customize the height of the header
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+\title{	
+ %  \includegraphics[width=4cm]{lia-logo.jpg} % also works with logo.pdf
+\normalfont \normalsize 
+\textsc{Intelligent Agents, EPFL} \\ [20pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Auctioning Agent \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+\author{Jeremy Gotteland \& Quentin Praz} % Your name
+\date{\normalsize\today} % Today's date or a custom date
+\begin{document}
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	PROBLEMS SECTION
+%----------------------------------------------------------------------------------------
+
+\section*{Improvement of the centralized agent}
+
+In this exercice, we chose to use the centralized agent that we implemented before. In order to have better results, we decided to improve it first.\\
+The first improvement was to stop the oscillation of the agent between two equivalent solutions. Indeed, we realize that some solutions were equivalent and that our agent was stuck in these solutions. For exemple two equivalent solutions are:
+$$S1: \{..., Pickup(c1, c2), Deliver(c0, c1),...\}$$ 
+$$S2: \{..., Deliver(c0, c1), Pickup(c1, c2),...\}$$
+If the vehicle has enough space to pickup then deliver, these two solutions are equivalent. Then, we add a condition in our validation method that states that when we have a pickup task and and delivery task in the same city, we always deliver first.\\
+The second improvement was to change the stochastic local search. The new method we chose is the following:
+\begin{itemize}
+\item With a probability $p$, we select the best neighbor.
+\item With a probability $p-1$, we select a random neighbor.
+\end{itemize}
+And the last improvement was to keep track of the best solution we saw, even if it's not the last one, and to return it.
+\end{document}          

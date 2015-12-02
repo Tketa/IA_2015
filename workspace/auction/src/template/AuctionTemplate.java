@@ -69,7 +69,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		List<Task> futureTasks = new ArrayList<Task>(currentTasks);
 		futureTasks.add(task);
 		
-		this.futureSolution = CentralizedPlanner.centralizedSolution(vehicles, futureTasks, endTime - 5000);
+		this.futureSolution = CentralizedPlanner.centralizedSolution(vehicles, futureTasks, endTime - 1000);
 		double cost = this.futureSolution.computeCost(vArray);
 		
 		double marginalCost = cost - currentSolution.computeCost(vArray);
@@ -104,7 +104,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		for (Task task : tasks) {
 			tmpTasks.add(task);
 		}
-		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks, endTime);
+		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks, endTime- 1000);
 		
 		List<Plan> plans = new LinkedList<Plan>();
 		for(Vehicle v : vehicles) plans.add(this.currentSolution.generatePlan(v));

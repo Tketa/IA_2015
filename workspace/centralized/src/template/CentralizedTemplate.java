@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
 import logist.LogistSettings;
 import logist.agent.Agent;
 import logist.behavior.CentralizedBehavior;
@@ -63,7 +65,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         long time_start = System.currentTimeMillis();
         
         
-        final double PROBABILITY = 0.3;
+        final double PROBABILITY = 0.8;
         
         int nbTasks = tasks.size();
         
@@ -75,6 +77,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         Solution initialSolution = initialSolutionClassic(vArray, tasks);
         
         Solution intermediateSolution = initialSolution;
+        Solution bestSolution = intermediateSolution;
         
         intermediateSolution.print();
         
@@ -84,11 +87,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	int vi = -1;
 	    	do {
 	    		vi = r.nextInt(vehicles.size());
-	    	} while(intermediateSolution.getVehicleFirstTask(vi) == null);	//En gros on cherche un vehicule qui contient au moins un tache?!    	
+	    	} while(intermediateSolution.getVehicleFirstTask(vi) == null);    	
 	    	
-	    	Set<Solution> possibleNeighbours = new HashSet<Solution>();
+	    	List<Solution> possibleNeighbours = new ArrayList<Solution>();
 	    	
-	    	possibleNeighbours.addAll(changeVehicleOperator(intermediateSolution, vArray, vi));
+	    	possibleNeighbours.addAll(changeVehicleOperator2(intermediateSolution, vArray, vi));
+	    	
+	    	Set<Solution> tmpPossibleNeigbours = new HashSet<Solution>(possibleNeighbours);
 
 	    	possibleNeighbours.addAll(changeTaskOrderOperation(intermediateSolution, vi));
 	    	
@@ -105,20 +110,21 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	for(Solution s : possibleNeighbours) {
 	    		if(s.isValid(vArray, nbTasks)) {
 	    			double cost = s.computeCost(vArray);
-	    			
-	    			if(cost < maxImprovement) {
-	    				ultimateSolution = s;
-	    				maxImprovement = cost;
-	    				
-	    				strictMin = true;
-	    				bestSolutions.clear();
-	    			} else if(cost == maxImprovement) {
-	    				
-	    				if(strictMin)
-	    					bestSolutions.add(ultimateSolution);
-	    				
-	    				bestSolutions.add(s);
-	    				strictMin = false;
+	    			if(cost != currentCost){
+	    				if(cost < maxImprovement) {
+		    				ultimateSolution = s;
+		    				maxImprovement = cost;
+		    				
+		    				strictMin = true;
+		    				bestSolutions.clear();
+	    				} else if(cost == maxImprovement) {
+	 
+		    				if(strictMin)
+		    					bestSolutions.add(ultimateSolution);
+		    				
+		    				bestSolutions.add(s);
+		    				strictMin = false;
+		    			}
 	    			}
 	    		}
 	    	}
@@ -126,29 +132,43 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	double randomNumber = r.nextDouble();
 	    
 	    	if(randomNumber < PROBABILITY) {
-	    		
+	    		System.out.println("New solution");
 		    	if(strictMin) {
 		    		intermediateSolution = ultimateSolution;
 		    	} else {
-		    		int rndIndex = r.nextInt(bestSolutions.size());
-		    		intermediateSolution = bestSolutions.get(rndIndex);
+		    		if(!bestSolutions.isEmpty()){
+		    			int rndIndex = r.nextInt(bestSolutions.size());
+		    			intermediateSolution = bestSolutions.get(rndIndex);
+		    		}
 		    	}
 	    	}
+	    	else{
+	    		intermediateSolution = possibleNeighbours.get((int) Math.random() * possibleNeighbours.size());
+	    	}
 	    	
-	    	double intermediateCost = intermediateSolution.computeCost(vArray);
+	    	currentCost = intermediateSolution.computeCost(vArray);
 	    	
-	    	System.out.println("Cost [" + intermediateCost + "]");
+	    	
+	    	System.out.println("Cost [" + currentCost + "]");
+	    	
+	    	if(intermediateSolution.computeCost(vArray) < bestSolution.computeCost(vArray)){
+	    		bestSolution = intermediateSolution;
+	    	}
 	    	nbIterations++;
         }
+        
+        
     	
         // Print the final solution.
-        intermediateSolution.print();
+        System.out.println("Best Cost [" + bestSolution.computeCost(vArray) + "]");
+        bestSolution.print();
         
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
         
         // COMPUTE COST FOR NAIVE SOLUTION AS A BASELINE
+        //TODO Remove for the auction
         Solution naiveSolution = naiveSolution(vehicles.get(0), tasks);
         Vehicle[] oneVehicle = new Vehicle[1];
         oneVehicle[0] = vArray[0];
@@ -158,7 +178,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         List<Plan> plans = new LinkedList<Plan>();
         
         for (Vehicle v : vehicles) {
-			plans.add(intermediateSolution.generatePlan(v));
+			plans.add(bestSolution.generatePlan(v));
 		}
         
         return plans;
@@ -247,18 +267,33 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	Random r = new Random();
     	Set<Solution> solutions = new HashSet<Solution>();
     	int nbVehicles = oldSolution.getNbVehicles();
-    	    	        	
-    	ExtendedTask t = oldSolution.getVehicleFirstTask(vi);
-
+    	
     	for(int vj = 0; vj < nbVehicles; vj++) {
     		if(vi != vj) {
     			Solution tmpSolution = oldSolution.clone();
-    				
-    			
-    			solutions.add(tmpSolution.swapVehicles(vi, vj));    			
+    			solutions.add(tmpSolution.swapVehicles(vi, vj, 0));    			
     		}
     	}
 
+    	return solutions;
+    }
+    
+    private Set<Solution> changeVehicleOperator2(Solution oldSolution, Vehicle[] vehicles, int vi) {
+    	
+    	Random r = new Random();
+    	Set<Solution> solutions = new HashSet<Solution>();
+    	int nbVehicles = oldSolution.getNbVehicles();
+    	    	        	
+    	int nbTasks = oldSolution.getNbTaskForVehicle(vi);
+    	
+    	for (int i = 0; i < nbTasks; i++) {
+			for(int vj = 0; vj < nbVehicles; vj++) {
+	    		if(vi != vj) {
+	    			Solution tmpSolution = oldSolution.clone();
+	    			solutions.add(tmpSolution.swapVehicles(vi, vj, i)); 			
+	    		}
+	    	}
+		}
     	return solutions;
     }
     

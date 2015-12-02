@@ -77,6 +77,8 @@ public class Solution implements Cloneable{
 			
 			nbExtended += tasks.size();
 			
+			ExtendedTask lastPickUp = null;
+			
 			for (ExtendedTask t : tasks) {
 				if(t.isPickup()) {
 					
@@ -93,6 +95,8 @@ public class Solution implements Cloneable{
 					if(weight > vehicles[i].capacity()) {
 						return false;
 					}
+					
+					lastPickUp = t;
 				} else {
 					
 					if(taskIdDelivery.contains(t.getT().id)
@@ -101,9 +105,14 @@ public class Solution implements Cloneable{
 						return false;
 					}
 					
+					if(lastPickUp.getT().pickupCity == t.getT().deliveryCity){
+						return false;
+					}
 					taskIdDelivery.add(t.getT().id);
 					
 					weight -= t.getT().weight;
+					
+
 				}
 			}
 		}
@@ -118,6 +127,18 @@ public class Solution implements Cloneable{
 	
 	public int getNbVehicles() {
 		return nbVehicles;
+	}
+	
+	public LinkedList<ExtendedTask> getVehicleTasks(int vehicleId){
+		if(solution.containsKey(vehicleId)) {
+			if(solution.get(vehicleId).isEmpty()) {
+				return null;
+			} else {
+				return solution.get(vehicleId);
+			}
+		} else {
+			return null;
+		}
 	}
 	
 	public ExtendedTask getVehicleFirstTask(int vehicleId) {
@@ -136,20 +157,20 @@ public class Solution implements Cloneable{
 		return solution.get(vehicleId).size();
 	}
 	
-	public Solution swapVehicles(int v1, int v2) {
+	public Solution swapVehicles(int v1, int v2, int index) {
 		
-		ExtendedTask tv1 = getVehicleFirstTask(v1);
-		ExtendedTask tv2 = getVehicleFirstTask(v2);
+		ExtendedTask tv1 = getVehicleTasks(v1).get(index);
+		//ExtendedTask tv2 = getVehicleTasks(v2).get(index);
 		
 		if(tv1 != null) {
 			this.removTask(v1, tv1.getT());
 			this.addTask(v2, tv1.getT());
 		}
 		
-		if(tv2 != null) {
+		/*if(tv2 != null) {
 			this.removTask(v2, tv2.getT());
 			this.addTask(v1, tv2.getT());
-		}
+		}*/
 		
 		return this;
 	}
@@ -250,6 +271,10 @@ public class Solution implements Cloneable{
 			
 			this.solution.put(entry.getKey(), tasks);
 		}
+	}
+
+	public boolean isEquals(Solution s) {
+		return true;
 	}
 	
 }

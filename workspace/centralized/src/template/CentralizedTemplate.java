@@ -64,7 +64,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
         
-        
         final double PROBABILITY = 0.8;
         
         int nbTasks = tasks.size();

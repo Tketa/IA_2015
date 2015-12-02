@@ -30,6 +30,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	private Solution futureSolution;
 	
     private long timeout_bid;
+    private long timeout_plan;
 	
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution,
@@ -44,6 +45,10 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.currentSolution = new Solution(this.vehicles.size());
 		
 		this.timeout_bid = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.BID);
+		this.timeout_plan = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.PLAN);
+		
+		System.out.println(timeout_bid);
+		System.out.println(timeout_plan);
 		
 	}
 
@@ -61,19 +66,12 @@ public class AuctionTemplate implements AuctionBehavior {
 		List<Task> futureTasks = new ArrayList<Task>(currentTasks);
 		futureTasks.add(task);
 		
-		double minCost = Double.POSITIVE_INFINITY;
+		this.futureSolution = CentralizedPlanner.centralizedSolution(vehicles, futureTasks, endTime - 5000);
+		double cost = this.futureSolution.computeCost(vArray);
 		
-		//while(System.currentTimeMillis() < endTime) {
-			//Solution possibleSolution = computeCentralized(vehicles, futureTasks, 0.5);
-			Solution possibleSolution = CentralizedPlanner.centralizedSolution(vehicles, futureTasks);
-			double possibleCost = possibleSolution.computeCost(vArray);
-			if(possibleCost < minCost) {
-				minCost = possibleCost;
-				this.futureSolution = possibleSolution;
-			}
-		//}
+		double marginalCost = cost - currentSolution.computeCost(vArray);
 		
-		double marginalCost = minCost - currentSolution.computeCost(vArray);
+		System.out.println(endTime - System.currentTimeMillis());
 		
 		return (long) Math.ceil(marginalCost);
 	}
@@ -96,11 +94,14 @@ public class AuctionTemplate implements AuctionBehavior {
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 		
+		long startTime = System.currentTimeMillis();
+		long endTime = startTime + timeout_plan;
+		
 		List<Task> tmpTasks = new ArrayList<Task>();
 		for (Task task : tasks) {
 			tmpTasks.add(task);
 		}
-		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks);
+		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks, endTime);
 		
 		List<Plan> plans = new LinkedList<Plan>();
 		for(Vehicle v : vehicles) plans.add(this.currentSolution.generatePlan(v));

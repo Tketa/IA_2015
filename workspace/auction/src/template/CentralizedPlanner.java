@@ -14,9 +14,9 @@ import logist.topology.Topology.City;
 
 public class CentralizedPlanner {
 
-	public static Solution centralizedSolution(List<Vehicle> vehicles, List<Task> tasks) {
+	public static Solution centralizedSolution(List<Vehicle> vehicles, List<Task> tasks, long endTime) {
 
-		long time_start = System.currentTimeMillis();
+		//long time_start = System.currentTimeMillis();
 
 		final double PROBABILITY = 0.8;
 
@@ -26,17 +26,16 @@ public class CentralizedPlanner {
 		vArray = vehicles.toArray(vArray);
 
 		Random r = new Random();
-		//Solution initialSolution = selectInitialSolution(vArray, tasks);
 		Solution initialSolution = initialSolutionClassic(vArray, tasks);
 
 		Solution intermediateSolution = initialSolution;
 		Solution bestSolution = intermediateSolution;
 
-		intermediateSolution.print();
-
-		int nbIterations = 0;
-		while(nbIterations < 5000){
-			System.out.println("Iteration " + (nbIterations + 1));
+		while(System.currentTimeMillis() < endTime){
+			
+			//System.out.println(endTime - System.currentTimeMillis());
+			long roundSpeed = System.currentTimeMillis();
+			//System.out.println("Iteration " + (nbIterations + 1));
 			int vi = -1;
 			do {
 				vi = r.nextInt(vehicles.size());
@@ -45,9 +44,6 @@ public class CentralizedPlanner {
 			List<Solution> possibleNeighbours = new ArrayList<Solution>();
 
 			possibleNeighbours.addAll(changeVehicleOperator2(intermediateSolution, vArray, vi));
-
-			Set<Solution> tmpPossibleNeigbours = new HashSet<Solution>(possibleNeighbours);
-
 			possibleNeighbours.addAll(changeTaskOrderOperation(intermediateSolution, vi));
 
 
@@ -85,7 +81,6 @@ public class CentralizedPlanner {
 			double randomNumber = r.nextDouble();
 
 			if(randomNumber < PROBABILITY) {
-				System.out.println("New solution");
 				if(strictMin) {
 					intermediateSolution = ultimateSolution;
 				} else {
@@ -96,29 +91,32 @@ public class CentralizedPlanner {
 				}
 			}
 			else{
-				intermediateSolution = possibleNeighbours.get((int) Math.random() * possibleNeighbours.size());
+				do{
+	    			intermediateSolution = possibleNeighbours.get((int) Math.random() * possibleNeighbours.size());
+	    		}while(!intermediateSolution.isValid(vArray, nbTasks));
 			}
 
 			currentCost = intermediateSolution.computeCost(vArray);
 
 
-			System.out.println("Cost [" + currentCost + "]");
+			//System.out.println("Cost [" + currentCost + "]");
 
 			if(intermediateSolution.computeCost(vArray) < bestSolution.computeCost(vArray)){
 				bestSolution = intermediateSolution;
 			}
-			nbIterations++;
+			
+			//System.out.println("Round Speed = "+(System.currentTimeMillis()-roundSpeed));
 		}
 
 
-
+		/*
 		// Print the final solution.
 		System.out.println("Best Cost [" + bestSolution.computeCost(vArray) + "]");
 		bestSolution.print();
 
 		long time_end = System.currentTimeMillis();
 		long duration = time_end - time_start;
-		System.out.println("The plan was generated in " + duration + " milliseconds.");
+		System.out.println("The plan was generated in " + duration + " milliseconds.");*/
 		
 		return bestSolution;
 	}

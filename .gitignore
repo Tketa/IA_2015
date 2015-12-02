@@ -216,3 +216,5 @@ pip-log.txt
 .mr.developer.cfg
 
 workspace/centralized/history.xml
+
+workspace/auction/history.xml

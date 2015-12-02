@@ -81,8 +81,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
         intermediateSolution.print();
         
         int nbIterations = 0;
-        while(nbIterations < 5000){
-        	System.out.println("Iteration " + (nbIterations + 1));
+        while(nbIterations < 10000){
+        	//System.out.println("Iteration " + (nbIterations + 1));
 	    	int vi = -1;
 	    	do {
 	    		vi = r.nextInt(vehicles.size());
@@ -131,7 +131,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	double randomNumber = r.nextDouble();
 	    
 	    	if(randomNumber < PROBABILITY) {
-	    		System.out.println("New solution");
 		    	if(strictMin) {
 		    		intermediateSolution = ultimateSolution;
 		    	} else {
@@ -142,13 +141,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		    	}
 	    	}
 	    	else{
-	    		intermediateSolution = possibleNeighbours.get((int) Math.random() * possibleNeighbours.size());
+	    		do{
+	    			intermediateSolution = possibleNeighbours.get((int) Math.random() * possibleNeighbours.size());
+	    		}while(!intermediateSolution.isValid(vArray, nbTasks));
+	    		
 	    	}
 	    	
 	    	currentCost = intermediateSolution.computeCost(vArray);
 	    	
 	    	
-	    	System.out.println("Cost [" + currentCost + "]");
+	    	//System.out.println("Cost [" + currentCost + "]");
 	    	
 	    	if(intermediateSolution.computeCost(vArray) < bestSolution.computeCost(vArray)){
 	    		bestSolution = intermediateSolution;

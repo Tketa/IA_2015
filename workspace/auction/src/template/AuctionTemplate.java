@@ -96,6 +96,12 @@ public class AuctionTemplate implements AuctionBehavior {
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 		
+		List<Task> tmpTasks = new ArrayList<Task>();
+		for (Task task : tasks) {
+			tmpTasks.add(task);
+		}
+		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks);
+		
 		List<Plan> plans = new LinkedList<Plan>();
 		for(Vehicle v : vehicles) plans.add(this.currentSolution.generatePlan(v));
 		

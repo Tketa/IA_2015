@@ -19,7 +19,7 @@ import logist.topology.Topology;
 
 public class AuctionTemplate implements AuctionBehavior {
 
-	private final double GOLDEN_RATIO = 2 / (1.0 + Math.sqrt(5)) ;
+	//private final double GOLDEN_RATIO = 2 / (1.0 + Math.sqrt(5)) ;
 	
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -49,7 +49,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.timeout_bid = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.BID);
 		this.timeout_plan = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.PLAN);
 		
-		System.out.println(timeout_bid);
+		System.out.println("[BID] " + timeout_bid);
 		System.out.println(timeout_plan);
 		
 	}
@@ -58,6 +58,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	public Long askPrice(Task task) {
 		
 		System.out.println("Ask price");
+		System.out.println("[intermediate bid is] " + LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.BID));
 
 		long startTime = System.currentTimeMillis();
 		long endTime = startTime + timeout_bid;
@@ -75,7 +76,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		
 		System.out.println(endTime - System.currentTimeMillis());
 		
-		return (long) Math.ceil(marginalCost * GOLDEN_RATIO);
+		return (long) Math.ceil(marginalCost);
 	}
 
 	@Override

@@ -31,8 +31,13 @@ public class CentralizedPlanner {
 		Solution intermediateSolution = initialSolution;
 		Solution bestSolution = intermediateSolution;
 
-		while(System.currentTimeMillis() < endTime){
+		long startTime = System.currentTimeMillis();
+		long elapsedTime = 0;
+		
+		
+		while(startTime + elapsedTime < endTime){
 			
+			//System.out.println(elapsedTime);
 			//System.out.println(endTime - System.currentTimeMillis());
 			long roundSpeed = System.currentTimeMillis();
 			//System.out.println("Iteration " + (nbIterations + 1));
@@ -91,9 +96,17 @@ public class CentralizedPlanner {
 				}
 			}
 			else{
-				do{
-	    			intermediateSolution = possibleNeighbours.get((int) Math.random() * possibleNeighbours.size());
-	    		}while(!intermediateSolution.isValid(vArray, nbTasks));
+				boolean foundSolution = false;
+				while(!foundSolution) {
+				
+					int rndIndex = (int) Math.random() * possibleNeighbours.size();
+	    			intermediateSolution = possibleNeighbours.get(rndIndex);
+	    			if(!intermediateSolution.isValid(vArray, nbTasks)) {
+	    				possibleNeighbours.remove(rndIndex);
+	    			} else {
+	    				foundSolution = true;
+	    			}
+				}
 			}
 
 			currentCost = intermediateSolution.computeCost(vArray);
@@ -106,6 +119,7 @@ public class CentralizedPlanner {
 			}
 			
 			//System.out.println("Round Speed = "+(System.currentTimeMillis()-roundSpeed));
+			elapsedTime = System.currentTimeMillis() - startTime; 
 		}
 
 

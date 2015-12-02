@@ -2,6 +2,7 @@ package template;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class CentralizedPlanner {
 			} while(intermediateSolution.getVehicleFirstTask(vi) == null);    	
 
 			List<Solution> possibleNeighbours = new ArrayList<Solution>();
+			List<Solution> validNeighbours = new LinkedList<Solution>();
 
 			possibleNeighbours.addAll(changeVehicleOperator2(intermediateSolution, vArray, vi));
 			possibleNeighbours.addAll(changeTaskOrderOperation(intermediateSolution, vi));
@@ -80,6 +82,7 @@ public class CentralizedPlanner {
 							strictMin = false;
 						}
 					}
+					validNeighbours.add(s);
 				}
 			}
 
@@ -96,17 +99,8 @@ public class CentralizedPlanner {
 				}
 			}
 			else{
-				boolean foundSolution = false;
-				while(!foundSolution) {
-				
-					int rndIndex = (int) Math.random() * possibleNeighbours.size();
-	    			intermediateSolution = possibleNeighbours.get(rndIndex);
-	    			if(!intermediateSolution.isValid(vArray, nbTasks)) {
-	    				possibleNeighbours.remove(rndIndex);
-	    			} else {
-	    				foundSolution = true;
-	    			}
-				}
+				int rndIndex = (int) Math.random() * validNeighbours.size();
+    			intermediateSolution = validNeighbours.get(rndIndex);
 			}
 
 			currentCost = intermediateSolution.computeCost(vArray);

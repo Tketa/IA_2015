@@ -49,8 +49,6 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.timeout_bid = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.BID);
 		this.timeout_plan = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.PLAN);
 		
-		System.out.println("[BID] " + timeout_bid);
-		System.out.println(timeout_plan);
 		
 	}
 
@@ -58,7 +56,6 @@ public class AuctionTemplate implements AuctionBehavior {
 	public Long askPrice(Task task) {
 		
 		System.out.println("Ask price");
-		System.out.println("[intermediate bid is] " + LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.BID));
 
 		long startTime = System.currentTimeMillis();
 		long endTime = startTime + timeout_bid;
@@ -72,19 +69,20 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.futureSolution = CentralizedPlanner.centralizedSolution(vehicles, futureTasks, endTime - 1000);
 		double cost = this.futureSolution.computeCost(vArray);
 		
-		double marginalCost = cost - currentSolution.computeCost(vArray);
+		double marginalCost = Math.abs(cost - currentSolution.computeCost(vArray));
 		
-		System.out.println(endTime - System.currentTimeMillis());
+		Random r = new Random();
 		
-		return (long) Math.ceil(marginalCost);
+		double randomRatio = 1 + 0.5*r.nextDouble();
+		
+		if(marginalCost > 1000 && r.nextDouble() > 0.9) marginalCost = 7000;
+		if(marginalCost == 0) marginalCost = 50;
+		
+		return (long) Math.ceil(randomRatio*marginalCost);
 	}
 
 	@Override
 	public void auctionResult(Task lastTask, int lastWinner, Long[] lastOffers) {
-		
-		/**
-		 * Do shit here to predict what the opponents do
-		 */
 		
 		if (lastWinner == this.agent.id()) {
 			System.out.println("You won the auction!");

@@ -19,6 +19,8 @@ import logist.topology.Topology;
 
 public class AuctionTemplate implements AuctionBehavior {
 
+	private final double GOLDEN_RATIO = 2 / (1.0 + Math.sqrt(5)) ;
+	
 	private Topology topology;
 	private TaskDistribution distribution;
 	private Agent agent;
@@ -73,7 +75,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		
 		System.out.println(endTime - System.currentTimeMillis());
 		
-		return (long) Math.ceil(marginalCost);
+		return (long) Math.ceil(marginalCost * GOLDEN_RATIO);
 	}
 
 	@Override
@@ -108,8 +110,6 @@ public class AuctionTemplate implements AuctionBehavior {
 		
 		return plans;
 	}
-
-	
 	
 	
 }

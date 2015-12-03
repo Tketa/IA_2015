@@ -53,4 +53,49 @@ The second improvement was to change the stochastic local search. The new method
 \item With a probability $p-1$, we select a random neighbor.
 \end{itemize}
 And the last improvement was to keep track of the best solution we saw, even if it's not the last one, and to return it.
-\end{document}          
+
+
+\section*{Implementing a bidding strategy}
+
+For every task available, agents have to bid following a \textit{closed-bid first-price reverse auction}
+
+
+\subsection*{Basic agent}
+
+Our basic agent's bidding strategy is pretty simple:\\
+First we compute the marginal cost, which is the difference of cost between a plan with the requested task (computed via previous homework's SLS algorithm) and the current plan we have.\\
+This marginal cost is the minimum amount we can bid, because if we bid less we will lose money (get rewarded less than what it actually cost us to deliver the task). So we tweak that cost to make a little profit, while trying to stay under the radar of other algorithms trying to guess what our bidding strategy is:\\\\
+If we call $C_m$ our marginal cost, and $p$ is a random number between 0 (included) and 1 (excluded) then the formula for our bid $B$ is:
+
+\begin{equation}
+B = (1 + 0.5.p) *
+\begin{cases}
+7000 \text{ if } p > 0.9 , C_m > 1000 \\
+50 \text{ if } C_m = 0 \\
+C_m \text{ otherwise }
+\end{cases}
+\end{equation}
+
+\subsection*{The Hollywood (Star) Agent}
+
+The Hollywood agent has a similar bidding strategy, except it also takes into account \textbf{opportunities} brought by getting the task. We define the opportunity score of a task to pickup in city A and deliver to city B by:
+
+\begin{equation}
+O_{AB} = \frac{\sum_{C= A+1}^{B} P_t(C, B)}{nbCities(A,B) - 1} 
+\end{equation}
+
+Where $P_t(C, B)$ is the probability of having a task from C to B, $nbCities(A,B)$ the number of cities between A and B, and $A+1$ being the city right after A on the shortest path from A to B.\\
+\\
+This opportunity score can help us bid less for promising task that will be likely to take us in a very comfortable situation later on. The equation we get for the bid is now: 
+
+\begin{equation}
+B = (1 + p - O_{task.pickup, task.delivery}) *
+\begin{cases}
+7000 \text{ if } p > 0.9 , C_m > 1000 \\
+50 \text{ if } C_m = 0 \\
+C_m \text{ otherwise }
+\end{cases}
+\end{equation}
+\end{document}
+
+Notice that we removed the 0.5 factor in front of the probability factor $p$, to avoid losing money.

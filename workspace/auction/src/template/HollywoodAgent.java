@@ -15,9 +15,17 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
+import logist.topology.Topology.City;
 
+/**
+ * The Hollywood agent is always looking ahead in the future, trying to see if a star he can work with
+ * can bring him other interesting stars
+ * 
+ * @author Tketa
+ *
+ */
 
-public class AuctionTemplate implements AuctionBehavior {
+public class HollywoodAgent implements AuctionBehavior {
 
 	//private final double GOLDEN_RATIO = 2 / (1.0 + Math.sqrt(5)) ;
 	
@@ -75,12 +83,14 @@ public class AuctionTemplate implements AuctionBehavior {
 		
 		Random r = new Random();
 		
-		double randomRatio = 1 + 0.5*r.nextDouble();
+		double randomRatio = 1 + r.nextDouble();
 		
 		if(marginalCost > 1000 && r.nextDouble() > 0.9) marginalCost = 7000;
 		if(marginalCost == 0) marginalCost = 50;
 		
-		return (long) Math.ceil(randomRatio*marginalCost);
+		double futureScore = getOpportunityExpected(task.pickupCity, task.deliveryCity);
+		
+		return (long) Math.ceil((randomRatio - futureScore) *marginalCost);
 	}
 
 	@Override
@@ -92,6 +102,31 @@ public class AuctionTemplate implements AuctionBehavior {
 			this.currentTasks.add(lastTask);
 		}
 		
+	}
+	
+	/**
+	 * Gets the expected number of tasks on the road from city A to B (normalized)
+	 * 
+	 * Opportunities: if cities on the path from A to B contain a task to deliver to B (and that our agent can carry?)
+	 * 
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public double getOpportunityExpected(City from, City to) {
+		
+		int nbCities = from.pathTo(to).size() - 1;
+		double probability = 0.0;
+		
+		for(City c : from.pathTo(to)) {
+			if(c == from) continue;
+			
+			probability += distribution.probability(c, to);
+		}
+		
+		probability = probability / nbCities;
+		
+		return probability;
 	}
 
 	@Override

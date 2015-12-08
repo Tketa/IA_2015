@@ -104,7 +104,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		for (Task task : tasks) {
 			tmpTasks.add(task);
 		}
-		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks, endTime- 1000);
+		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks, endTime- 2000);
 		
 		List<Plan> plans = new LinkedList<Plan>();
 		for(Vehicle v : vehicles) plans.add(this.currentSolution.generatePlan(v));

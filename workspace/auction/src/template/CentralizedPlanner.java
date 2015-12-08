@@ -34,9 +34,11 @@ public class CentralizedPlanner {
 
 		long startTime = System.currentTimeMillis();
 		long elapsedTime = 0;
+		long bestFound = endTime;
 		
+		boolean minFound = false;
 		
-		while(startTime + elapsedTime < endTime){
+		while(startTime + elapsedTime < endTime && !minFound){
 			
 			//System.out.println(elapsedTime);
 			//System.out.println(endTime - System.currentTimeMillis());
@@ -110,6 +112,11 @@ public class CentralizedPlanner {
 
 			if(intermediateSolution.computeCost(vArray) < bestSolution.computeCost(vArray)){
 				bestSolution = intermediateSolution;
+				bestFound = System.currentTimeMillis();
+			}
+			
+			if(System.currentTimeMillis() - bestFound > 5000){
+				minFound = true;
 			}
 			
 			//System.out.println("Round Speed = "+(System.currentTimeMillis()-roundSpeed));

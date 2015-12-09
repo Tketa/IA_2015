@@ -66,7 +66,11 @@ public class AuctionTemplate implements AuctionBehavior {
 		List<Task> futureTasks = new ArrayList<Task>(currentTasks);
 		futureTasks.add(task);
 		
-		this.futureSolution = CentralizedPlanner.centralizedSolution(vehicles, futureTasks, endTime - 1000);
+		double timerRatio = Math.min(1, Math.log(1+(futureTasks.size()/10)));
+		long timer = (long) timerRatio*(endTime - 1000);
+		
+		
+		this.futureSolution = CentralizedPlanner.centralizedSolution(vehicles, futureTasks, timer);
 		double cost = this.futureSolution.computeCost(vArray);
 		
 		double marginalCost = Math.abs(cost - currentSolution.computeCost(vArray));

@@ -95,26 +95,25 @@ public class AuctionTemplate implements AuctionBehavior {
 			this.currentSolution = this.futureSolution.clone();
 			this.currentTasks.add(lastTask);
 		}
-		
 	}
 
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 		
-		long startTime = System.currentTimeMillis();
-		long endTime = startTime + timeout_plan;
-		
-		List<Task> tmpTasks = new ArrayList<Task>();
-		for (Task task : tasks) {
-			tmpTasks.add(task);
-		}
-		this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks, endTime- 2000);
-		
 		List<Plan> plans = new LinkedList<Plan>();
-		for(Vehicle v : vehicles) plans.add(this.currentSolution.generatePlan(v));
 		
+		if(!tasks.isEmpty()){
+			long startTime = System.currentTimeMillis();
+			long endTime = startTime + timeout_plan;
+
+			List<Task> tmpTasks = new ArrayList<Task>();
+			
+			for (Task task : tasks) {
+				tmpTasks.add(task);
+			}
+			this.currentSolution = CentralizedPlanner.centralizedSolution(vehicles, tmpTasks, endTime- 2000);
+			for(Vehicle v : vehicles) plans.add(this.currentSolution.generatePlan(v));
+		}
 		return plans;
 	}
-	
-	
 }

@@ -25,9 +25,10 @@ Here we expressed the problem as a Constraint Satisfaction Problem (CSP) and sol
 ## Implementing a Decentralized Agent
 
 Centralized coordination is guaranteed to produce the optimal plan (globally or locally) for a multi-agent PDP problem, when :
-– All tasks are known in advance (they were until now, in our setting)
-– The company has complete information about the parameters of its vehicles
-– The vehicles blindly follow the orders of the company
+* All tasks are known in advance (they were until now, in our setting)
+* The company has complete information about the parameters of its vehicles
+* The vehicles blindly follow the orders of the company
+
 Unfortunately, these conditions are not always met in real life applications. Most often vehicles or group of vehicles (i.e. companies) are self-interested and might not be willing
 to obey a central planner. This may happen for various  reasons : for example, the central planning might be unfair, or the agent might not wish to reveal the true information
 about its state. One intuitive solution is to allow the agents to negotiate and distribute the transportation

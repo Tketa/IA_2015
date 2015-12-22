@@ -7,14 +7,14 @@ In this course, we had to design several types of intelligent agents to tackle t
 
 In this exercise, we learned how to use a reactive agent to solve the Pickup and Delivery Problem. For that, we implemented a reinforcement learning algorithm (RLA) to compute an optimal strategy off-line. This strategy is then used by the agent to travel through the network.
 
-We compute the best action to take in every state offline by Value Iteration. 
+We compute the best action to take in every state offline by [Value Iteration](https://en.wikipedia.org/wiki/Markov_decision_process#Value_iteration). 
 
 ## Implementing a Deliberative Agent
 
 In this exercise, we learned how to use a deliberative agent to solve the Pickup and Delivery Problem. A deliberative agent does not simply react to percepts coming from the environment. It can build a plan that specifies the sequence of actions to be taken in order to reach a certain goal. A deliberative agent has goals (e.g. to deliver all tasks) and is fully aware of the world it is acting in.
 
 
-We implemented Breadth-first search algorithm as well as state-based A* search algorithm.
+We implemented Breadth-first search algorithm as well as state-based [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm).
 
 ## Implementing a Centralized Agent
 
